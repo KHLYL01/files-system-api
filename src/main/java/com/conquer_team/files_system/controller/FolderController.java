@@ -1,6 +1,9 @@
 package com.conquer_team.files_system.controller;
 
+import com.conquer_team.files_system.model.dto.requests.AddFileToFolderRequest;
 import com.conquer_team.files_system.model.dto.requests.AddFolderRequest;
+import com.conquer_team.files_system.model.dto.requests.AddUserFileRequest;
+import com.conquer_team.files_system.model.dto.requests.AddUserToFolderRequest;
 import com.conquer_team.files_system.services.FolderService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
@@ -25,6 +28,11 @@ public class FolderController {
     @PostMapping
     public ResponseEntity<?> save(@RequestBody AddFolderRequest request) {
         return new ResponseEntity<>(folderService.save(request) , HttpStatus.CREATED);
+    }
+
+    @PutMapping
+    public ResponseEntity<?> addUserToFolder(@RequestBody AddUserToFolderRequest request) {
+        return new ResponseEntity<>(folderService.addUserToFolder(request) , HttpStatus.CREATED);
     }
 
 

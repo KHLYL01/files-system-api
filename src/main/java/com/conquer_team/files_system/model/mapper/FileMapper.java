@@ -18,6 +18,9 @@ public class FileMapper {
     private final UserMapper userMapper;
 
     public List<FileResponse> toDtos(List<File> entities){
+        if(entities == null){
+            return null;
+        }
         return entities.stream().map(this::toDto).collect(Collectors.toList());
     }
 

@@ -2,10 +2,8 @@ package com.conquer_team.files_system.model.mapper;
 
 
 import com.conquer_team.files_system.model.dto.requests.RegisterRequest;
-import com.conquer_team.files_system.model.dto.response.FolderResponse;
 import com.conquer_team.files_system.model.dto.response.LoginResponse;
 import com.conquer_team.files_system.model.dto.response.UserResponse;
-import com.conquer_team.files_system.model.entity.Folder;
 import com.conquer_team.files_system.model.entity.User;
 import com.conquer_team.files_system.model.enums.Role;
 import lombok.RequiredArgsConstructor;
@@ -23,6 +21,9 @@ public class UserMapper {
     private final PasswordEncoder passwordEncoder;
 
     public List<UserResponse> toDtos(List<User> entities){
+        if (entities == null){
+            return null;
+        }
         return entities.stream().map(this::toDto).collect(Collectors.toList());
     }
 
