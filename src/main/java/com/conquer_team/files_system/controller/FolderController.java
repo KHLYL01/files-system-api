@@ -30,9 +30,14 @@ public class FolderController {
         return new ResponseEntity<>(folderService.save(request) , HttpStatus.CREATED);
     }
 
-    @PutMapping
+    @PutMapping("/users")
     public ResponseEntity<?> addUserToFolder(@RequestBody AddUserToFolderRequest request) {
         return new ResponseEntity<>(folderService.addUserToFolder(request) , HttpStatus.CREATED);
+    }
+
+    @PutMapping("/files")
+    public ResponseEntity<?> addFileToFolder(@RequestBody AddFileToFolderRequest request) {
+        return new ResponseEntity<>(folderService.addFileToFolder(request) , HttpStatus.CREATED);
     }
 
 

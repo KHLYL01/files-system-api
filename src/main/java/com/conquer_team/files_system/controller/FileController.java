@@ -47,11 +47,6 @@ public class FileController {
         return new ResponseEntity<>(fileService.save(request) , HttpStatus.CREATED);
     }
 
-    @PutMapping
-    public ResponseEntity<?> addFileToFolder(@RequestBody AddFileToFolderRequest request) {
-        return new ResponseEntity<>(fileService.addFileToFolder(request) , HttpStatus.CREATED);
-    }
-
     @PostMapping("/check-in")
     public ResponseEntity<?> checkIn(@RequestBody CheckInFileRequest request) {
         return new ResponseEntity<>(fileService.checkIn(request) , HttpStatus.CREATED);

@@ -22,8 +22,6 @@ public interface FileService {
 
     FileResponse save(AddUserFileRequest request) throws IOException;
 
-    FileResponse addFileToFolder(AddFileToFolderRequest request);
-
     FileResponse checkIn(CheckInFileRequest request);
 
     List<FileResponse> checkInAll(CheckInAllFileRequest request);

@@ -73,20 +73,6 @@ public class FileServiceImpl implements FileService {
     }
 
     @Override
-    public FileResponse addFileToFolder(AddFileToFolderRequest request) {
-        File file = repo.findById(request.getFileId()).orElseThrow(
-                () -> new IllegalArgumentException("File with id " + request.getFileId() + " is not found")
-        );
-
-        Folder folder = folderRepo.findById(request.getFolderId()).orElseThrow(
-                () -> new IllegalArgumentException("File with id " + request.getFolderId() + " is not found")
-        );
-
-        file.setFolder(folder);
-        return mapper.toDto(repo.save(file));
-    }
-
-    @Override
     public FileResponse checkIn(CheckInFileRequest request) {
         File file = repo.findById(request.getFileId()).orElseThrow(
                 () -> new IllegalArgumentException("File with id " + request.getFileId() + " is not found")

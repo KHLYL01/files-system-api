@@ -1,5 +1,6 @@
 package com.conquer_team.files_system.services.serviceImpl;
 
+import com.conquer_team.files_system.model.dto.requests.AddFileToFolderRequest;
 import com.conquer_team.files_system.model.dto.requests.AddFolderRequest;
 import com.conquer_team.files_system.model.dto.requests.AddUserToFolderRequest;
 import com.conquer_team.files_system.model.dto.response.FolderResponse;
@@ -7,6 +8,7 @@ import com.conquer_team.files_system.model.entity.File;
 import com.conquer_team.files_system.model.entity.Folder;
 import com.conquer_team.files_system.model.entity.User;
 import com.conquer_team.files_system.model.mapper.FolderMapper;
+import com.conquer_team.files_system.repository.FileRepo;
 import com.conquer_team.files_system.repository.FolderRepo;
 import com.conquer_team.files_system.repository.UserRepo;
 import com.conquer_team.files_system.services.FolderService;
@@ -22,6 +24,7 @@ public class FolderServiceImpl implements FolderService {
     private final FolderMapper mapper;
 
     private final UserRepo userRepo;
+    private final FileRepo fileRepo;
 
     @Override
     public List<FolderResponse> findAll() {
@@ -31,7 +34,7 @@ public class FolderServiceImpl implements FolderService {
     @Override
     public FolderResponse addUserToFolder(AddUserToFolderRequest request) {
         Folder folder = repo.findById(request.getFolderId()).orElseThrow(
-                () -> new IllegalArgumentException("File with id " + request.getFolderId() + " is not found")
+                () -> new IllegalArgumentException("Folder with id " + request.getFolderId() + " is not found")
         );
 
         User user = userRepo.findById(request.getUserId()).orElseThrow(
@@ -44,6 +47,27 @@ public class FolderServiceImpl implements FolderService {
             List<User> users = folder.getListOfUsers();
             users.add(user);
             folder.setListOfUsers(users);
+        }
+
+        return mapper.toDto(repo.save(folder));
+    }
+
+    @Override
+    public FolderResponse addFileToFolder(AddFileToFolderRequest request) {
+        Folder folder = repo.findById(request.getFolderId()).orElseThrow(
+                () -> new IllegalArgumentException("Folder with id " + request.getFolderId() + " is not found")
+        );
+
+        File file = fileRepo.findById(request.getFileId()).orElseThrow(
+                () -> new IllegalArgumentException("File with id " + request.getFileId() + " is not found")
+        );
+
+        if(folder.getListOfFiles() == null){
+            folder.setListOfFiles(List.of(file));
+        }else{
+            List<File> files = folder.getListOfFiles();
+            files.add(file);
+            folder.setListOfFiles(files);
         }
 
         return mapper.toDto(repo.save(folder));
