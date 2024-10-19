@@ -1,9 +1,6 @@
 package com.conquer_team.files_system.controller;
 
-import com.conquer_team.files_system.model.dto.requests.LoginRequest;
-import com.conquer_team.files_system.model.dto.requests.RefreshTokenRequest;
-import com.conquer_team.files_system.model.dto.requests.RegisterRequest;
-import com.conquer_team.files_system.model.dto.requests.VerificationRequest;
+import com.conquer_team.files_system.model.dto.requests.*;
 import com.conquer_team.files_system.services.AuthService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
@@ -41,11 +38,15 @@ public class AuthController {
         return new ResponseEntity<>(HttpStatus.CREATED);
     }
 
+    @PostMapping("/send-code")
+    public ResponseEntity<?> sendCode(CodeRequest dto){
+        authService.sendCode(dto);
+        return new ResponseEntity<>(HttpStatus.CREATED);
+    }
 
-//    @PostMapping("/code")
-//    public ResponseEntity<?> reSendCode(@RequestBody ReSendCodeDto dto) {
-//        authService.sendCode(dto);
-//        return ResponseEntity.ok().build();
-//    }
-
+    @PostMapping("/change-password")
+    public ResponseEntity<?> changePassword(ResetPasswordRequest dto) {
+        authService.changePassword(dto);
+        return new ResponseEntity<>(HttpStatus.CREATED);
+    }
 }

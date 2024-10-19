@@ -1,10 +1,7 @@
 package com.conquer_team.files_system.services.serviceImpl;
 
 import com.conquer_team.files_system.config.JwtService;
-import com.conquer_team.files_system.model.dto.requests.LoginRequest;
-import com.conquer_team.files_system.model.dto.requests.RefreshTokenRequest;
-import com.conquer_team.files_system.model.dto.requests.RegisterRequest;
-import com.conquer_team.files_system.model.dto.requests.VerificationRequest;
+import com.conquer_team.files_system.model.dto.requests.*;
 import com.conquer_team.files_system.model.dto.response.LoginResponse;
 import com.conquer_team.files_system.model.dto.response.RefreshTokenResponse;
 import com.conquer_team.files_system.model.dto.response.UserResponse;
@@ -14,8 +11,10 @@ import com.conquer_team.files_system.repository.UserRepo;
 import com.conquer_team.files_system.services.AuthService;
 import com.conquer_team.files_system.services.SendMailService;
 import lombok.RequiredArgsConstructor;
+import org.apache.commons.lang3.RandomStringUtils;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
 import java.util.HashMap;
@@ -30,10 +29,12 @@ public class AuthServiceImpl implements AuthService {
     private final AuthenticationManager authenticationManager;
     private final JwtService jwtService;
     private final SendMailService sendMailService;
+    private final PasswordEncoder passwordEncoder;
+
 
     @Override
     public UserResponse register(RegisterRequest request) {
-        User user = mapper.toEntity(request);
+        User user = mapper.toEntity(request,passwordEncoder.encode(request.getPassword()));
         User savedUser = repo.save(user);
         sendMailService.sendMail(savedUser.getEmail(), savedUser.getVerificationCode(), "Verification your account");
         return mapper.toDto(savedUser);
@@ -81,4 +82,24 @@ public class AuthServiceImpl implements AuthService {
             throw new IllegalArgumentException("Invalid verification code");
         }
     }
+
+    @Override
+    public void sendCode(CodeRequest dto) {
+            String verificationCode = RandomStringUtils.randomNumeric(6);
+
+            sendMailService.sendMail(dto.getEmail(), verificationCode, "confirm your account");
+            User user = repo.findByEmail(dto.getEmail()).get();
+            user.setVerificationCode(verificationCode);
+
+            repo.save(user);
+    }
+
+    @Override
+    public void changePassword(ResetPasswordRequest dto) {
+        User user = repo.findByEmail(dto.getEmail()).get();
+        user.setPassword(passwordEncoder.encode(dto.getPassword()));
+        repo.save(user);
+    }
+
+
 }

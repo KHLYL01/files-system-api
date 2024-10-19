@@ -18,8 +18,6 @@ import java.util.stream.Collectors;
 @RequiredArgsConstructor
 public class UserMapper {
 
-    private final PasswordEncoder passwordEncoder;
-
     public List<UserResponse> toDtos(List<User> entities){
         if (entities == null){
             return null;
@@ -39,11 +37,11 @@ public class UserMapper {
                 .build();
     }
 
-    public User toEntity(RegisterRequest dto){
+    public User toEntity(RegisterRequest dto,String password){
         return User.builder()
                 .fullname(dto.getFullname())
                 .email(dto.getEmail())
-                .password(passwordEncoder.encode(dto.getPassword()))
+                .password(password)
                 .role(Role.USER)
                 .enable(false)
                 .verificationCode(RandomStringUtils.randomNumeric(6))
@@ -61,4 +59,5 @@ public class UserMapper {
                 .refreshToken(refreshToken)
                 .build();
     }
+
 }

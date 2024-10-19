@@ -1,9 +1,6 @@
 package com.conquer_team.files_system.services;
 
-import com.conquer_team.files_system.model.dto.requests.LoginRequest;
-import com.conquer_team.files_system.model.dto.requests.RefreshTokenRequest;
-import com.conquer_team.files_system.model.dto.requests.RegisterRequest;
-import com.conquer_team.files_system.model.dto.requests.VerificationRequest;
+import com.conquer_team.files_system.model.dto.requests.*;
 import com.conquer_team.files_system.model.dto.response.LoginResponse;
 import com.conquer_team.files_system.model.dto.response.RefreshTokenResponse;
 import com.conquer_team.files_system.model.dto.response.UserResponse;
@@ -18,5 +15,7 @@ public interface AuthService {
 
     void verificationAccount(VerificationRequest request);
 
-//    void sendCode(ReSendCodeDto dto);
+    void sendCode(CodeRequest dto);
+
+    void changePassword(ResetPasswordRequest dto);
 }

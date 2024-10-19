@@ -24,6 +24,11 @@ public class FolderController {
         return ResponseEntity.ok(folderService.findAll());
     }
 
+    @GetMapping("/{id}")
+    public ResponseEntity<?> findById(@PathVariable Long id) {
+        return ResponseEntity.ok(folderService.findById(id));
+    }
+
 
     @PostMapping
     public ResponseEntity<?> save(@RequestBody AddFolderRequest request) {

@@ -32,6 +32,14 @@ public class FolderServiceImpl implements FolderService {
     }
 
     @Override
+    public FolderResponse findById(Long id) {
+        return mapper.toDto(repo.findById(id).orElseThrow(
+                        () -> new IllegalArgumentException("Folder with id " + id + " is not found")
+                )
+        );
+    }
+
+    @Override
     public FolderResponse addUserToFolder(AddUserToFolderRequest request) {
         Folder folder = repo.findById(request.getFolderId()).orElseThrow(
                 () -> new IllegalArgumentException("Folder with id " + request.getFolderId() + " is not found")
@@ -41,9 +49,9 @@ public class FolderServiceImpl implements FolderService {
                 () -> new IllegalArgumentException("User with id " + request.getUserId() + " is not found")
         );
 
-        if(folder.getListOfUsers() == null){
+        if (folder.getListOfUsers() == null) {
             folder.setListOfUsers(List.of(user));
-        }else{
+        } else {
             List<User> users = folder.getListOfUsers();
             users.add(user);
             folder.setListOfUsers(users);
@@ -62,9 +70,9 @@ public class FolderServiceImpl implements FolderService {
                 () -> new IllegalArgumentException("File with id " + request.getFileId() + " is not found")
         );
 
-        if(folder.getListOfFiles() == null){
+        if (folder.getListOfFiles() == null) {
             folder.setListOfFiles(List.of(file));
-        }else{
+        } else {
             List<File> files = folder.getListOfFiles();
             files.add(file);
             folder.setListOfFiles(files);
@@ -77,7 +85,6 @@ public class FolderServiceImpl implements FolderService {
 //    public List<FolderResponse> findAllByUserId(Long userId) {
 //        return mapper.toDtos(repo.findAllByUserId(userId));
 //    }
-
 
 
     @Override

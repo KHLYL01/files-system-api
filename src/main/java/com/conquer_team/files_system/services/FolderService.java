@@ -11,6 +11,8 @@ public interface FolderService {
 
     List<FolderResponse> findAll();
 
+    FolderResponse findById(Long id);
+
 //    List<FolderResponse> findAllByUserId(Long userId);
     FolderResponse addUserToFolder(AddUserToFolderRequest request);
 
