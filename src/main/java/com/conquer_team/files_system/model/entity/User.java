@@ -7,6 +7,7 @@ import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
 
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 
@@ -34,10 +35,45 @@ public class User implements UserDetails {
     private Role role;
 
     private boolean enable;
+
     private String verificationCode;
+
+    @OneToMany(mappedBy = "user", cascade = CascadeType.ALL)
+    private List<UserFolder> userFolders;
+
 
     @OneToMany(mappedBy = "user",fetch = FetchType.EAGER,orphanRemoval = true)
     private List<File> listOfFiles;
+
+    @OneToMany(mappedBy = "user",cascade = CascadeType.REMOVE)
+    private List<Folder> folders;
+
+    public void addFolder(Folder folder){
+        if(folders == null){
+            folders = new ArrayList<>();
+            folders.add(folder);
+        }else {
+            folders.add(folder);
+        }
+    }
+
+    public void addFile(File file){
+        if(listOfFiles == null){
+            listOfFiles = new ArrayList<>();
+            listOfFiles.add(file);
+        }else {
+            listOfFiles.add(file);
+        }
+    }
+
+    public void addUserFolders(UserFolder userFolder){
+        if(userFolders == null){
+            userFolders = new ArrayList<>();
+            userFolders.add(userFolder);
+        }else {
+            userFolders.add(userFolder);
+        }
+    }
 
     @Override
     public Collection<? extends GrantedAuthority> getAuthorities() {

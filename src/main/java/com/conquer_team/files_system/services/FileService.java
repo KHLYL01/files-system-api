@@ -1,9 +1,6 @@
 package com.conquer_team.files_system.services;
 
-import com.conquer_team.files_system.model.dto.requests.AddFileToFolderRequest;
-import com.conquer_team.files_system.model.dto.requests.AddUserFileRequest;
-import com.conquer_team.files_system.model.dto.requests.CheckInAllFileRequest;
-import com.conquer_team.files_system.model.dto.requests.CheckInFileRequest;
+import com.conquer_team.files_system.model.dto.requests.*;
 import com.conquer_team.files_system.model.dto.response.FileResponse;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -26,13 +23,15 @@ public interface FileService {
 
     List<FileResponse> checkInAll(CheckInAllFileRequest request);
 
-    void checkOut(Long fileId);
+    void checkOutWithoutUpdate(Long fileId);
 
     void deleteById(Long id);
 
     String uploadFile(MultipartFile file) throws IOException;
 
     void deleteFile(String fileName) throws IOException;
+
+    FileResponse checkOutWithUpdate(CheckOutRequest request, long id) throws IOException;
 
 //    byte[] viewFile(String fileName) throws IOException;
 

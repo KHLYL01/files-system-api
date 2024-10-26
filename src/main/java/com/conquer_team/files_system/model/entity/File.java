@@ -19,7 +19,15 @@ public class File {
 
     private String name;
 
+    @Enumerated(EnumType.STRING)
     private FileStatus status;
+
+    @PrePersist
+    public void prePersist() {
+        if (status == null) {
+            status = FileStatus.AVAILABLE;
+        }
+    }
 
     @ManyToOne
     @JoinColumn(name = "user_id")

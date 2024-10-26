@@ -3,6 +3,7 @@ package com.conquer_team.files_system.services;
 import com.conquer_team.files_system.model.dto.requests.AddFileToFolderRequest;
 import com.conquer_team.files_system.model.dto.requests.AddFolderRequest;
 import com.conquer_team.files_system.model.dto.requests.AddUserToFolderRequest;
+import com.conquer_team.files_system.model.dto.requests.InvitationUserToGroupRequest;
 import com.conquer_team.files_system.model.dto.response.FolderResponse;
 
 import java.util.List;
@@ -21,4 +22,10 @@ public interface FolderService {
     FolderResponse save(AddFolderRequest request);
 
     void deleteById(Long id);
+
+//    List<FolderResponse> getJoinIt();
+
+    List<FolderResponse> getMyFolder();
+
+    void invitationUser(InvitationUserToGroupRequest request);
 }

@@ -31,8 +31,7 @@ public class FolderMapper {
         return FolderResponse.builder()
                 .id(entity.getId())
                 .name(entity.getName())
-                .listOfFiles(fileMapper.toDtos(entity.getListOfFiles()))
-                .listOfUsers(userMapper.toDtos(entity.getListOfUsers()))
+                .owner(entity.getUser().getId())
                 .build();
     }
 

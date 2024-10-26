@@ -4,6 +4,7 @@ package com.conquer_team.files_system.model.mapper;
 import com.conquer_team.files_system.model.dto.requests.AddUserFileRequest;
 import com.conquer_team.files_system.model.dto.response.FileResponse;
 import com.conquer_team.files_system.model.entity.File;
+import com.conquer_team.files_system.model.entity.Folder;
 import com.conquer_team.files_system.model.entity.User;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -34,12 +35,12 @@ public class FileMapper {
                 .url("localhost:8080/api/v1/downloads/"+entity.getName())
                 .status(entity.getStatus())
                 .bookedUser(userMapper.toDto(entity.getBookedUser()))
+                .folderId(entity.getFolder().getId())
                 .build();
     }
 
     public File toEntity(AddUserFileRequest dto, String name, User user){
         return  File.builder()
-                .status(dto.getStatus())
                 .name(name)
                 .user(user)
                 .build();

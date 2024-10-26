@@ -1,9 +1,7 @@
 package com.conquer_team.files_system.controller;
 
-import com.conquer_team.files_system.model.dto.requests.AddFileToFolderRequest;
-import com.conquer_team.files_system.model.dto.requests.AddUserFileRequest;
-import com.conquer_team.files_system.model.dto.requests.CheckInAllFileRequest;
-import com.conquer_team.files_system.model.dto.requests.CheckInFileRequest;
+import com.conquer_team.files_system.model.dto.requests.*;
+import com.conquer_team.files_system.notation.AdminFolder;
 import com.conquer_team.files_system.services.FileService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
@@ -21,7 +19,6 @@ import java.io.IOException;
 public class FileController {
 
     final private FileService fileService;
-
     @GetMapping
     public ResponseEntity<?> findAll() {
         return ResponseEntity.ok(fileService.findAll());
@@ -43,6 +40,7 @@ public class FileController {
     }
 
     @PostMapping(consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+    @AdminFolder
     public ResponseEntity<?> save(@ModelAttribute AddUserFileRequest request) throws IOException {
         return new ResponseEntity<>(fileService.save(request) , HttpStatus.CREATED);
     }
@@ -57,13 +55,20 @@ public class FileController {
         return new ResponseEntity<>(fileService.checkInAll(request) , HttpStatus.CREATED);
     }
 
-    @DeleteMapping("/check-out/{id}")
-    public ResponseEntity<?> checkOut(@PathVariable Long id) {
-        fileService.checkOut(id);
+    @PutMapping("/check-out-without/{id}")
+    public ResponseEntity<?> checkOutWithoutUpdate(@PathVariable Long id) {
+        fileService.checkOutWithoutUpdate(id);
         return ResponseEntity.noContent().build();
     }
 
+    @PutMapping(value = "/check-out/{id}", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+    public ResponseEntity<?> checkOutWithUpdate(@PathVariable long id
+            ,@ModelAttribute CheckOutRequest request)throws IOException{
+        return ResponseEntity.status(200).body(fileService.checkOutWithUpdate(request,id));
+    }
+
     @DeleteMapping("/{id}")
+    @AdminFolder
     public ResponseEntity<?> deleteById(@PathVariable Long id) {
         fileService.deleteById(id);
         return new ResponseEntity<>(HttpStatus.CREATED);

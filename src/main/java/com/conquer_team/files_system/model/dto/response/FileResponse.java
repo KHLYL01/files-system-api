@@ -14,5 +14,6 @@ public class FileResponse {
     private String url;
     private FileStatus status;
     private UserResponse bookedUser;
+    private long folderId;
 
 }

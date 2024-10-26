@@ -1,0 +1,7 @@
+Account SID = AC8e615559a547e1e961a7b2a4ef2831ce
+Auth Token = a40e774e211ac5a7cf103964702b665e
+phone = +963936635358
+
+
+
+https://www.twilio.com/en-us/blog/send-basic-sms-java-springboot?utm_source=google&utm_medium=cpc&utm_term=&utm_campaign=G_S_PMAX_EMEA_SMS_T1&cq_plac=&cq_net=x&cq_pos=&cq_med=&cq_plt=gp&gad_source=1&gclid=Cj0KCQjwlvW2BhDyARIsADnIe-IJ63YWv8QwUnvP3uTnYonb_wmgKrvv_8KS97xHnDgDVM_3aisy-wcaAjbgEALw_wcB

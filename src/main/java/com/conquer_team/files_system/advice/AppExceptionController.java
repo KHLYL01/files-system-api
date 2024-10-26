@@ -1,7 +1,9 @@
 package com.conquer_team.files_system.advice;
 
+import io.jsonwebtoken.ExpiredJwtException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.AccessDeniedException;
 import org.springframework.validation.FieldError;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ControllerAdvice;
@@ -25,6 +27,17 @@ public class AppExceptionController {
                 .timestamp(new Date())
                 .statusCode(HttpStatus.BAD_REQUEST.value())
                 .message(errors.toString())
+                .build();
+
+        return new ResponseEntity<>(exceptionResponse, HttpStatus.BAD_REQUEST);
+    }
+
+    @ExceptionHandler(value = {RuntimeException.class})
+    public ResponseEntity<ExceptionDto> runtimeException(RuntimeException ex) {
+        ExceptionDto exceptionResponse = ExceptionDto.builder()
+                .timestamp(new Date())
+                .statusCode(HttpStatus.BAD_REQUEST.value())
+                .message(ex.getLocalizedMessage())
                 .build();
 
         return new ResponseEntity<>(exceptionResponse, HttpStatus.BAD_REQUEST);
@@ -56,6 +69,18 @@ public class AppExceptionController {
 
     @ExceptionHandler(value = {IllegalArgumentException.class})
     public ResponseEntity<ExceptionDto> illegalArgumentHandle(IllegalArgumentException ex) {
+
+        ExceptionDto exceptionResponse = ExceptionDto.builder()
+                .timestamp(new Date())
+                .statusCode(HttpStatus.BAD_REQUEST.value())
+                .message(ex.getLocalizedMessage())
+                .build();
+
+        return new ResponseEntity<>(exceptionResponse, HttpStatus.BAD_REQUEST);
+    }
+
+    @ExceptionHandler(value = {AccessDeniedException.class})
+    public ResponseEntity<ExceptionDto> accessDeniedException(AccessDeniedException ex) {
 
         ExceptionDto exceptionResponse = ExceptionDto.builder()
                 .timestamp(new Date())
