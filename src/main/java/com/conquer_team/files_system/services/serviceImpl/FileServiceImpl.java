@@ -1,12 +1,16 @@
 package com.conquer_team.files_system.services.serviceImpl;
 
 import com.conquer_team.files_system.config.JwtService;
-import com.conquer_team.files_system.model.dto.requests.*;
+import com.conquer_team.files_system.model.dto.requests.AddUserFileRequest;
+import com.conquer_team.files_system.model.dto.requests.CheckInAllFileRequest;
+import com.conquer_team.files_system.model.dto.requests.CheckInFileRequest;
+import com.conquer_team.files_system.model.dto.requests.CheckOutRequest;
 import com.conquer_team.files_system.model.dto.response.FileResponse;
 import com.conquer_team.files_system.model.entity.File;
 import com.conquer_team.files_system.model.entity.Folder;
 import com.conquer_team.files_system.model.entity.User;
 import com.conquer_team.files_system.model.enums.FileStatus;
+import com.conquer_team.files_system.model.enums.JoinStatus;
 import com.conquer_team.files_system.model.mapper.FileMapper;
 import com.conquer_team.files_system.repository.FileRepo;
 import com.conquer_team.files_system.repository.FolderRepo;
@@ -46,10 +50,10 @@ public class FileServiceImpl implements FileService {
         return mapper.toDtos(repo.findAll());
     }
 
-    @Override
-    public List<FileResponse> findAllByUserId(Long userId) {
-        return mapper.toDtos(repo.findAllByUserId(userId));
-    }
+//    @Override
+//    public List<FileResponse> findAllByUserId(Long userId) {
+//        return mapper.toDtos(repo.findAllByUserId(userId));
+//    }
 
     @Override
     public List<FileResponse> findAllBookedFileByUserId(Long userId) {
@@ -73,9 +77,8 @@ public class FileServiceImpl implements FileService {
                 new IllegalArgumentException("folder not found"));
 
         String filename = uploadFile(request.getFile());
-        File file = mapper.toEntity(request, filename, user);
+        File file = mapper.toEntity(filename, user);
 
-        folder.addFiles(file);
         file.setFolder(folder);
 
         return mapper.toDto(repo.save(file));
@@ -92,13 +95,15 @@ public class FileServiceImpl implements FileService {
             );
 
             if (user.getId() != file.getFolder().getUser().getId() &&
-                    !userFolderRepo.searchByUserIdAndFolderIdAndStatus(user.getId(), file.getFolder().getId(), FileStatus.AVAILABLE).isPresent()) {
+                    !userFolderRepo.searchByUserIdAndFolderIdAndStatus(user.getId(), file.getFolder().getId(), JoinStatus.ACCEPTED).isPresent()) {
                 throw new AccessDeniedException("You do not have the necessary permissions to access this resource.");
             }
 
             file.setStatus(FileStatus.UNAVAILABLE);
             file.setBookedUser(user);
-            user.addFile(file);
+
+            //ToDo removed list of files
+//            user.addFile(file);
             return mapper.toDto(repo.save(file));
         } else {
             throw new IllegalArgumentException("File with id " + request.getFileId() + " is not Available");
@@ -120,35 +125,33 @@ public class FileServiceImpl implements FileService {
         return checkInResponse;
     }
 
-    @Override
-    public void checkOutWithoutUpdate(Long fileId) {
-        File file = repo.findById(fileId).get();
-        if (file.getStatus() == FileStatus.UNAVAILABLE) {
-            file.setStatus(FileStatus.AVAILABLE);
-            file.setBookedUser(null);
-            repo.save(file);
-        } else {
-            throw new IllegalArgumentException("File with id " + fileId + " is Available");
-        }
-    }
 
     @Transactional
     @Override
-    public FileResponse checkOutWithUpdate(CheckOutRequest request, long id)throws IOException {
-        File file = repo.findById(id).get();
-        MultipartFile file1 = request.getFile();
-        String fileName = file1.getOriginalFilename();
-        if(!file.getName().contains(fileName)){
-            throw new IllegalArgumentException("Please upload the same file");
-        }
-        else{
-            System.out.println("AAAAAAAAAAA");
-            String fileName2 = uploadFile(request.getFile());
-            file.setName(fileName2);
+    public FileResponse checkOut(CheckOutRequest request, long id) throws IOException {
+        File file = repo.findById(id).orElseThrow(
+                () -> new IllegalArgumentException("File with id " + id + " is not found")
+        );
+
+        if (file.getStatus() == FileStatus.UNAVAILABLE) {
             file.setStatus(FileStatus.AVAILABLE);
             file.setBookedUser(null);
+
+            if (request.getFile() != null){
+                String fileName = request.getFile().getOriginalFilename();
+                if (!file.getName().contains(fileName)) {
+                    throw new IllegalArgumentException("Please upload the same file");
+                } else {
+                    fileName = uploadFile(request.getFile());
+                    file.setName(fileName);
+                }
+            }
+
             return mapper.toDto(repo.save(file));
+        } else {
+            throw new IllegalArgumentException("File with id " + id + " is Available");
         }
+
     }
 
     @Override
@@ -186,22 +189,9 @@ public class FileServiceImpl implements FileService {
         return uniqueFileName;
     }
 
-//    @Override
-//    public byte[] viewFile(String fileName) throws IOException {
-//        Path filePath = Path.of(uploadImageDirectory, fileName);
-//
-//        if (Files.exists(filePath)) {
-//            byte[] fileBytes = Files.readAllBytes(filePath);
-//            return fileBytes;
-//        } else {
-//            return null;
-//        }
-//    }
-
     @Override
     public void deleteFile(String fileName) throws IOException {
         Path imagePath = Path.of(uploadImageDirectory, fileName);
-
         if (Files.exists(imagePath)) {
             Files.delete(imagePath);
         }

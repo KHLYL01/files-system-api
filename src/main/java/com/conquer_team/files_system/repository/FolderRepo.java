@@ -1,6 +1,5 @@
 package com.conquer_team.files_system.repository;
 
-import com.conquer_team.files_system.model.dto.response.FolderResponse;
 import com.conquer_team.files_system.model.entity.Folder;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
@@ -8,6 +7,8 @@ import org.springframework.stereotype.Repository;
 import java.util.List;
 
 @Repository
-public interface FolderRepo extends JpaRepository<Folder,Long> {
-  List<Folder> findAllByUserId(Long id);
+public interface FolderRepo extends JpaRepository<Folder, Long> {
+
+    List<Folder> findAllByUserIdNot(Long id);
+
 }

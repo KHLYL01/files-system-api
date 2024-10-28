@@ -11,8 +11,8 @@ import java.util.Optional;
 
 @Repository
 public interface UserFolderRepo extends JpaRepository<UserFolder,Long> {
-    List<UserFolder> findByUserIdAndStatusAndType(long id, FileStatus status, JoinStatus type);
-    List<UserFolder> findByFolderIdAndStatusAndType(long id, FileStatus status, JoinStatus type);
+    List<UserFolder> findByUserIdAndStatus(long id,JoinStatus status);
+    List<UserFolder> findByFolderIdAndStatus(long id, JoinStatus status);
    // List<UserFolder> findAllByUserIdAndAndStatus(long id,JoinStatus type);
-    Optional<UserFolder> searchByUserIdAndFolderIdAndStatus(long user_id, long folder_id, FileStatus s);
+    Optional<UserFolder> searchByUserIdAndFolderIdAndStatus(long user_id, long folder_id,JoinStatus status);
 }

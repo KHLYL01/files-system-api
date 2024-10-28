@@ -22,13 +22,6 @@ public class File {
     @Enumerated(EnumType.STRING)
     private FileStatus status;
 
-    @PrePersist
-    public void prePersist() {
-        if (status == null) {
-            status = FileStatus.AVAILABLE;
-        }
-    }
-
     @ManyToOne
     @JoinColumn(name = "user_id")
     private User user;
@@ -40,4 +33,12 @@ public class File {
     @ManyToOne
     @JoinColumn(name = "folder_id")
     private Folder folder;
+
+    @PrePersist
+    public void prePersist() {
+        if (status == null) {
+            status = FileStatus.AVAILABLE;
+        }
+    }
+
 }

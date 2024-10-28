@@ -1,17 +1,15 @@
 package com.conquer_team.files_system.model.entity;
 
-import com.conquer_team.files_system.model.enums.FileStatus;
 import com.conquer_team.files_system.model.enums.JoinStatus;
-import com.conquer_team.files_system.model.enums.Role;
 import jakarta.persistence.*;
 import lombok.*;
 import org.hibernate.annotations.CreationTimestamp;
-import org.hibernate.annotations.UpdateTimestamp;
 
 import java.time.LocalDateTime;
 
 @Entity
-@Data
+@Setter
+@Getter
 @AllArgsConstructor
 @NoArgsConstructor
 @Builder
@@ -23,10 +21,7 @@ public class UserFolder {
     private long id;
 
     @Enumerated(EnumType.STRING)
-    private FileStatus status;
-
-    @Enumerated(EnumType.STRING)
-    private JoinStatus type ;
+    private JoinStatus status;
 
     @ManyToOne
     @JoinColumn(name = "user_id")
@@ -38,17 +33,5 @@ public class UserFolder {
 
     @CreationTimestamp
     private LocalDateTime createdAt;
-
-    @UpdateTimestamp
-    private LocalDateTime updatedAt;
-
-
-    @PrePersist
-    public void prePersist() {
-        if (status == null) {
-            status = FileStatus.UNAVAILABLE;
-        }
-    }
-
 
 }

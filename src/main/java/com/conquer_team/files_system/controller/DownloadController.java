@@ -1,6 +1,5 @@
 package com.conquer_team.files_system.controller;
 
-import com.conquer_team.files_system.services.FileService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.io.ByteArrayResource;
@@ -23,7 +22,6 @@ import java.nio.file.Paths;
 @RequestMapping("/api/v1/downloads")
 public class DownloadController {
 
-    final private FileService fileService;
     @Value("${image.directory}")
     private String uploadImageDirectory;
 

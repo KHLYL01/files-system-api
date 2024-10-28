@@ -13,6 +13,8 @@ public class FolderResponse {
 
     private Long id;
     private String name;
-    private Long owner;
+    private UserResponse owner;
+    private List<FileResponse> files;
+    private List<UserFolderResponse> usersInFolder;
 
 }

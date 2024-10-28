@@ -2,10 +2,7 @@ package com.conquer_team.files_system.model.mapper;
 
 
 import com.conquer_team.files_system.model.dto.requests.AddFolderRequest;
-import com.conquer_team.files_system.model.dto.requests.AddUserFileRequest;
-import com.conquer_team.files_system.model.dto.response.FileResponse;
 import com.conquer_team.files_system.model.dto.response.FolderResponse;
-import com.conquer_team.files_system.model.entity.File;
 import com.conquer_team.files_system.model.entity.Folder;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -17,26 +14,35 @@ import java.util.stream.Collectors;
 @RequiredArgsConstructor
 public class FolderMapper {
 
-    private final FileMapper fileMapper;
     private final UserMapper userMapper;
+    private final FileMapper fileMapper;
+    private final UserFolderMapper userFolderMapper;
 
-    public List<FolderResponse> toDtos(List<Folder> entities){
+
+    public List<FolderResponse> toDtos(List<Folder> entities) {
+        if (entities == null) {
+            return null;
+        }
         return entities.stream().map(this::toDto).collect(Collectors.toList());
     }
 
-    public FolderResponse toDto(Folder entity){
-        if(entity == null){
+    public FolderResponse toDto(Folder entity) {
+        if (entity == null) {
             return null;
         }
         return FolderResponse.builder()
                 .id(entity.getId())
                 .name(entity.getName())
-                .owner(entity.getUser().getId())
+                .owner(userMapper.toDto(entity.getUser()))
+                .files(fileMapper.toDtos(entity.getListOfFiles()))
+                .usersInFolder(userFolderMapper.toDtos(entity.getUserFolders()))
                 .build();
     }
 
-    public Folder toEntity(AddFolderRequest dto){
-        return  Folder.builder()
+
+
+    public Folder toEntity(AddFolderRequest dto) {
+        return Folder.builder()
                 .name(dto.getName())
                 .build();
     }

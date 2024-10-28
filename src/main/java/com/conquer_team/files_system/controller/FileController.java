@@ -24,10 +24,10 @@ public class FileController {
         return ResponseEntity.ok(fileService.findAll());
     }
 
-    @GetMapping("/users/{id}")
-    public ResponseEntity<?> findAllByUserId(@PathVariable Long id) {
-        return ResponseEntity.ok(fileService.findAllByUserId(id));
-    }
+//    @GetMapping("/users/{id}")
+//    public ResponseEntity<?> findAllByUserId(@PathVariable Long id) {
+//        return ResponseEntity.ok(fileService.findAllByUserId(id));
+//    }
 
     @GetMapping("booked/users/{id}")
     public ResponseEntity<?> findAllBookedByUserId(@PathVariable Long id) {
@@ -55,16 +55,10 @@ public class FileController {
         return new ResponseEntity<>(fileService.checkInAll(request) , HttpStatus.CREATED);
     }
 
-    @PutMapping("/check-out-without/{id}")
-    public ResponseEntity<?> checkOutWithoutUpdate(@PathVariable Long id) {
-        fileService.checkOutWithoutUpdate(id);
-        return ResponseEntity.noContent().build();
-    }
-
     @PutMapping(value = "/check-out/{id}", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
-    public ResponseEntity<?> checkOutWithUpdate(@PathVariable long id
-            ,@ModelAttribute CheckOutRequest request)throws IOException{
-        return ResponseEntity.status(200).body(fileService.checkOutWithUpdate(request,id));
+    public ResponseEntity<?> checkOut(@PathVariable long id
+            , @ModelAttribute CheckOutRequest request)throws IOException{
+        return ResponseEntity.status(200).body(fileService.checkOut(request,id));
     }
 
     @DeleteMapping("/{id}")

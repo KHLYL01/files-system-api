@@ -39,7 +39,7 @@ public class FileMapper {
                 .build();
     }
 
-    public File toEntity(AddUserFileRequest dto, String name, User user){
+    public File toEntity(String name, User user){
         return  File.builder()
                 .name(name)
                 .user(user)

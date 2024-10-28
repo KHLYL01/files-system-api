@@ -1,8 +1,6 @@
 package com.conquer_team.files_system.controller;
 
-import com.conquer_team.files_system.model.dto.requests.AddFileToFolderRequest;
 import com.conquer_team.files_system.model.dto.requests.AddFolderRequest;
-import com.conquer_team.files_system.model.dto.requests.AddUserToFolderRequest;
 import com.conquer_team.files_system.model.dto.requests.InvitationUserToGroupRequest;
 import com.conquer_team.files_system.notation.AdminFolder;
 import com.conquer_team.files_system.services.FolderService;
@@ -15,13 +13,24 @@ import org.springframework.web.bind.annotation.*;
 @RestController
 @RequiredArgsConstructor
 @RequestMapping("/api/v1/folders")
+@PreAuthorize("hasAnyAuthority('USER','ADMIN')")
 public class FolderController {
 
     final private FolderService folderService;
 
-    @GetMapping("/all")
+    @GetMapping
     public ResponseEntity<?> findAll() {
         return ResponseEntity.ok(folderService.findAll());
+    }
+
+    @GetMapping("/my-folders")
+    public ResponseEntity<?> getMyFolders(){
+        return ResponseEntity.ok(folderService.getMyFolder());
+    }
+
+    @GetMapping("/other-folders")
+    public ResponseEntity<?> getOtherFolder(){
+        return ResponseEntity.ok(folderService.getOtherFolder());
     }
 
     @GetMapping("/{id}")
@@ -29,26 +38,20 @@ public class FolderController {
         return ResponseEntity.ok(folderService.findById(id));
     }
 
-    @GetMapping("/my")
-    public ResponseEntity<?> getMyFolders(){
-        return ResponseEntity.status(200).body(folderService.getMyFolder());
-    }
 
-    @PreAuthorize("hasAuthority('USER')")
     @PostMapping
     public ResponseEntity<?> save(@RequestBody AddFolderRequest request) {
         return new ResponseEntity<>(folderService.save(request), HttpStatus.CREATED);
     }
 
-    @PreAuthorize("hasAuthority('USER')")
-    @PostMapping("/invitation/")
-    @AdminFolder
-    public ResponseEntity<?> invitationUserToGroup(@RequestBody InvitationUserToGroupRequest request){
-        folderService.invitationUser(request);
+
+    @DeleteMapping("/{id}")
+    public ResponseEntity<?> deleteById(@PathVariable Long id) {
+        folderService.deleteById(id);
         return ResponseEntity.noContent().build();
     }
 
-//    @PutMapping("/users")
+    //    @PutMapping("/users")
 //    public ResponseEntity<?> addUserToFolder(@RequestBody AddUserToFolderRequest request) {
 //        return new ResponseEntity<>(folderService.addUserToFolder(request), HttpStatus.CREATED);
 //    }
@@ -57,11 +60,5 @@ public class FolderController {
 //    public ResponseEntity<?> addFileToFolder(@RequestBody AddFileToFolderRequest request) {
 //        return new ResponseEntity<>(folderService.addFileToFolder(request), HttpStatus.CREATED);
 //    }
-
-    @DeleteMapping("/{id}")
-    public ResponseEntity<?> deleteById(@PathVariable Long id) {
-        folderService.deleteById(id);
-        return new ResponseEntity<>(HttpStatus.CREATED);
-    }
 
 }

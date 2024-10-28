@@ -11,7 +11,7 @@ public interface FileService {
 
     List<FileResponse> findAll();
 
-    List<FileResponse> findAllByUserId(Long userId);
+//    List<FileResponse> findAllByUserId(Long userId);
 
     List<FileResponse> findAllBookedFileByUserId(Long userId);
 
@@ -23,15 +23,13 @@ public interface FileService {
 
     List<FileResponse> checkInAll(CheckInAllFileRequest request);
 
-    void checkOutWithoutUpdate(Long fileId);
-
     void deleteById(Long id);
 
     String uploadFile(MultipartFile file) throws IOException;
 
     void deleteFile(String fileName) throws IOException;
 
-    FileResponse checkOutWithUpdate(CheckOutRequest request, long id) throws IOException;
+    FileResponse checkOut(CheckOutRequest request, long id) throws IOException;
 
 //    byte[] viewFile(String fileName) throws IOException;
 

@@ -53,8 +53,8 @@ public class CheckUser {
     }
 
 
-    @Before("execution(* com.conquer_team.files_system.controller.UserController.acceptInvitationOrJoinRequest(..)) ||" +
-            "execution(* com.conquer_team.files_system.controller.UserController.rejectInvitationOrJoinRequest(..)) ")
+    @Before("execution(* com.conquer_team.files_system.controller.JoinController.acceptInvitationOrJoinRequest(..)) ||" +
+            "execution(* com.conquer_team.files_system.controller.JoinController.rejectInvitationOrJoinRequest(..)) ")
     public void checkUser(JoinPoint joinPoint){
         Object[] args = joinPoint.getArgs();
         Long userFolderId = (long) args[0];
@@ -69,8 +69,7 @@ public class CheckUser {
         }
     }
 
-    @Before("execution(* com.conquer_team.files_system.controller.FileController.checkOutWithoutUpdate(..)) ||" +
-            "execution(* com.conquer_team.files_system.controller.FileController.checkOutWithUpdate(..))")
+    @Before("execution(* com.conquer_team.files_system.controller.FileController.checkOut(..))")
     public void checkBookedUser(JoinPoint joinPoint){
         Long fileId = (long)joinPoint.getArgs()[0];
         File file = fileRepo.findById(fileId).orElseThrow(()->
@@ -80,7 +79,5 @@ public class CheckUser {
             throw new  AccessDeniedException("You do not have the necessary permissions to access this resource.");
         }
     }
-
-//    public void
 
 }

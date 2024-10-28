@@ -2,8 +2,10 @@ package com.conquer_team.files_system.config;
 
 import com.conquer_team.files_system.model.dto.requests.LoginRequest;
 import com.conquer_team.files_system.model.dto.response.LoginResponse;
+import com.conquer_team.files_system.model.entity.Folder;
 import com.conquer_team.files_system.model.entity.User;
 import com.conquer_team.files_system.model.enums.Role;
+import com.conquer_team.files_system.repository.FolderRepo;
 import com.conquer_team.files_system.repository.UserRepo;
 import com.conquer_team.files_system.services.AuthService;
 import lombok.RequiredArgsConstructor;
@@ -15,13 +17,15 @@ import org.springframework.stereotype.Component;
 @RequiredArgsConstructor
 public class Startup implements CommandLineRunner {
 
-    private final UserRepo repo;
+    private final UserRepo userRepo;
     private final PasswordEncoder passwordEncoder;
     private final AuthService authService;
+    private final FolderRepo folderRepo;
+
 
     @Override
     public void run(String... args){
-        if (repo.findAll().isEmpty()) {
+        if (userRepo.findAll().isEmpty()) {
             User admin = User.builder()
                     .fullname("admin")
                     .email("admin@gmail.com")
@@ -40,8 +44,22 @@ public class Startup implements CommandLineRunner {
                     .listOfFiles(null)
                     .enable(true)
                     .build();
-            repo.save(admin);
-            repo.save(user);
+
+            Folder adminFolder = Folder.builder()
+                    .name("Admin Folder")
+                    .user(admin)
+                    .build();
+
+            Folder userFolder = Folder.builder()
+                    .name("User Folder")
+                    .user(user)
+                    .build();
+
+
+            userRepo.save(admin);
+            userRepo.save(user);
+            folderRepo.save(adminFolder);
+            folderRepo.save(userFolder);
         }
 
         LoginResponse adminLogin = authService.login(

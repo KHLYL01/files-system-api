@@ -8,7 +8,6 @@ import com.conquer_team.files_system.model.dto.response.UserResponse;
 import com.conquer_team.files_system.model.entity.Folder;
 import com.conquer_team.files_system.model.entity.User;
 import com.conquer_team.files_system.model.entity.UserFolder;
-import com.conquer_team.files_system.model.enums.FileStatus;
 import com.conquer_team.files_system.model.enums.JoinStatus;
 import com.conquer_team.files_system.model.enums.Role;
 import com.conquer_team.files_system.model.mapper.UserFolderMapper;
@@ -53,6 +52,7 @@ public class UserServiceImpl implements UserService {
         return mapper.toDtos(repo.findAllByRole(Role.USER));
     }
 
+
     @Transactional
     @Override
     public void joinToGroup(JoinToGroupRequest request) {
@@ -61,26 +61,24 @@ public class UserServiceImpl implements UserService {
         Folder folder = folderRepo.findById(request.getFolderId()).orElseThrow(() ->
                 new IllegalArgumentException("folder not found"));
 
-        UserFolder userFolder = UserFolder.builder()
-                .user(user)
-                .folder(folder)
-                .type(JoinStatus.REQUEST)
-                .build();
-        user.addUserFolders(userFolder);
-        folder.addUserFolders(userFolder);
+        UserFolder userFolder = userFolderMapper.addUserFolder(folder,user,JoinStatus.REQUEST);
+
+        //ToDo
+//        user.addUserFolders(userFolder);
+//        folder.addUserFolders(userFolder);
         userFolderRepo.save(userFolder);
     }
 
     @Override
     public List<GetInvitationsResponse> getInvitations() {
         User user = repo.findByEmail(jwtService.getCurrentUserName()).get();
-        List<UserFolder> userFolders = userFolderRepo.findByUserIdAndStatusAndType(user.getId(), FileStatus.UNAVAILABLE, JoinStatus.INVITATION);
+        List<UserFolder> userFolders = userFolderRepo.findByUserIdAndStatus(user.getId(),JoinStatus.INVITATION);
         return userFolderMapper.toDtosInv(userFolders);
     }
 
     @Override
     public List<GetRequestsJoiningResponse> getRequestsJoining(Long id) {
-        List<UserFolder> userFolders = userFolderRepo.findByFolderIdAndStatusAndType(id, FileStatus.UNAVAILABLE, JoinStatus.REQUEST);
+        List<UserFolder> userFolders = userFolderRepo.findByFolderIdAndStatus(id, JoinStatus.REQUEST);
         return userFolderMapper.toDtosJoin(userFolders);
     }
 
@@ -89,7 +87,7 @@ public class UserServiceImpl implements UserService {
     public void acceptInvitationOrJoinRequest(long id) {
         UserFolder userFolder = userFolderRepo.findById(id).orElseThrow(() ->
                 new IllegalArgumentException("not found"));
-        userFolder.setStatus(FileStatus.AVAILABLE);
+        userFolder.setStatus(JoinStatus.ACCEPTED);
         userFolderRepo.save(userFolder);
     }
 
