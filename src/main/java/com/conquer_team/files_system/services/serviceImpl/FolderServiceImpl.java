@@ -3,6 +3,7 @@ package com.conquer_team.files_system.services.serviceImpl;
 import com.conquer_team.files_system.config.JwtService;
 import com.conquer_team.files_system.model.dto.requests.AddFolderRequest;
 import com.conquer_team.files_system.model.dto.requests.InvitationUserToGroupRequest;
+import com.conquer_team.files_system.model.dto.requests.NotificationRequest;
 import com.conquer_team.files_system.model.dto.requests.UpdateFolderRequest;
 import com.conquer_team.files_system.model.dto.response.FolderResponse;
 import com.conquer_team.files_system.model.entity.Folder;
@@ -13,9 +14,11 @@ import com.conquer_team.files_system.model.enums.JoinStatus;
 import com.conquer_team.files_system.model.mapper.FolderMapper;
 import com.conquer_team.files_system.model.mapper.UserFolderMapper;
 import com.conquer_team.files_system.repository.FolderRepo;
+import com.conquer_team.files_system.repository.NotificationRepo;
 import com.conquer_team.files_system.repository.UserFolderRepo;
 import com.conquer_team.files_system.repository.UserRepo;
 import com.conquer_team.files_system.services.FolderService;
+import com.conquer_team.files_system.services.NotificationService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -32,6 +35,7 @@ public class FolderServiceImpl implements FolderService {
     private final FolderMapper mapper;
     private final JwtService jwtService;
     private final UserRepo userRepo;
+    private final NotificationService notificationService;
 
     private final UserFolderRepo userFolderRepo;
     private final UserFolderMapper userFolderMapper;
@@ -84,6 +88,14 @@ public class FolderServiceImpl implements FolderService {
                 new IllegalArgumentException("user by id: " + request.getUserId() + " not found"));
         Folder folder = repo.findById(request.getFolderId()).orElseThrow(() ->
                 new IllegalArgumentException("folder by id: " + request.getFolderId() + " not found"));
+
+        notificationService.sendNotificationToAdminFolder(
+                NotificationRequest.builder()
+                        .tittle("You've Been Invited to Join a Group")
+                        .message("You have received an invitation to join the group ["+folder.getName()+"] By"+folder.getUser().getFullname() +". Tap to view the details and accept the invitation")
+                        .user(user)
+                        .build()
+        );
 
         UserFolder userFolder = userFolderMapper.addUserFolder(folder, user, JoinStatus.INVITATION);
         userFolderRepo.save(userFolder);

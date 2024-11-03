@@ -1,9 +1,15 @@
 package com.conquer_team.files_system.config;
 
 import com.conquer_team.files_system.services.UserService;
+import com.google.auth.oauth2.GoogleCredentials;
+import com.google.firebase.FirebaseApp;
+import com.google.firebase.FirebaseOptions;
+import com.google.firebase.messaging.FirebaseMessaging;
 import lombok.RequiredArgsConstructor;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.core.io.ClassPathResource;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.AuthenticationProvider;
 import org.springframework.security.authentication.dao.DaoAuthenticationProvider;
@@ -19,6 +25,8 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 
+import java.io.IOException;
+
 @Configuration
 @EnableWebSecurity
 @EnableMethodSecurity
@@ -27,6 +35,8 @@ public class SecurityConfiguration {
 
     private final JwtAuthenticationFilter jwtAuthenticationFilter;
     private final UserService userService;
+    @Value("${app.firebase-configuration-file}")
+    private String firebaseConfigPath;
 
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
@@ -88,19 +98,19 @@ public class SecurityConfiguration {
         return config.getAuthenticationManager();
     }
 
-//    @Bean
-//    FirebaseMessaging firebaseMessaging() throws IOException {
-//        GoogleCredentials googleCredentials = GoogleCredentials.fromStream(
-//                new ClassPathResource("google_services.json")
-//                        .getInputStream()
-//        );
-//
-//        FirebaseOptions firebaseOptions = FirebaseOptions.builder()
-//                .setCredentials(googleCredentials)
-//                .build();
-//
-//        FirebaseApp app = FirebaseApp.initializeApp(firebaseOptions, "my-app");
-//
-//        return FirebaseMessaging.getInstance(app);
-//    }
+    @Bean
+    FirebaseMessaging firebaseMessaging() throws IOException {
+        GoogleCredentials googleCredentials = GoogleCredentials.fromStream(
+                new ClassPathResource(firebaseConfigPath)
+                        .getInputStream()
+        );
+
+        FirebaseOptions firebaseOptions = FirebaseOptions.builder()
+                .setCredentials(googleCredentials)
+                .build();
+
+        FirebaseApp app = FirebaseApp.initializeApp(firebaseOptions, "file-system");
+
+        return FirebaseMessaging.getInstance(app);
+    }
 }

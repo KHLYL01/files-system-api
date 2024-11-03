@@ -1,10 +1,7 @@
 package com.conquer_team.files_system.services.serviceImpl;
 
 import com.conquer_team.files_system.config.JwtService;
-import com.conquer_team.files_system.model.dto.requests.AddFileRequest;
-import com.conquer_team.files_system.model.dto.requests.CheckInAllFileRequest;
-import com.conquer_team.files_system.model.dto.requests.CheckInFileRequest;
-import com.conquer_team.files_system.model.dto.requests.CheckOutRequest;
+import com.conquer_team.files_system.model.dto.requests.*;
 import com.conquer_team.files_system.model.dto.response.FileResponse;
 import com.conquer_team.files_system.model.entity.File;
 import com.conquer_team.files_system.model.entity.Folder;
@@ -18,6 +15,8 @@ import com.conquer_team.files_system.repository.FolderRepo;
 import com.conquer_team.files_system.repository.UserFolderRepo;
 import com.conquer_team.files_system.repository.UserRepo;
 import com.conquer_team.files_system.services.FileService;
+import com.conquer_team.files_system.services.NotificationService;
+import com.google.firebase.messaging.Message;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.access.AccessDeniedException;
@@ -42,6 +41,7 @@ public class FileServiceImpl implements FileService {
     private final FolderRepo folderRepo;
     private final UserRepo userRepo;
     private final UserFolderRepo userFolderRepo;
+    private final NotificationService notificationService;
 
     @Value("${image.directory}")
     private String uploadImageDirectory;
@@ -71,14 +71,10 @@ public class FileServiceImpl implements FileService {
     @Override
     public FileResponse save(AddFileRequest request) throws IOException {
 
-        //ToDo make user add file also if grop is not (disable Add File)
+        //ToDo make user add file also if group is not (disable Add File)
 
-//        User user = userRepo.findByEmail(jwtService.getCurrentUserName()).orElseThrow(
-//                () -> new IllegalArgumentException("user not found")
-//        );
-//////
         // check if user  in folder
-        if(!userFolderRepo.existsByUserIdAndFolderIdAndStatus(request.getUserId(),request.getFolderId(),JoinStatus.ACCEPTED)){
+        if (!userFolderRepo.existsByUserIdAndFolderIdAndStatus(request.getUserId(), request.getFolderId(), JoinStatus.ACCEPTED)) {
             System.out.println("you are out this folder");
             throw new AccessDeniedException("You do not have the necessary permissions to access this resource.");
         }
@@ -88,14 +84,23 @@ public class FileServiceImpl implements FileService {
                 new IllegalArgumentException("folder not found"));
 
         // check if user id equals owner id and folder setting not (contains Disable add folder)
-        if(!request.getUserId().equals(folder.getUser().getId()) && folder.getSettings().contains(FolderSetting.DISABLE_ADD_FILE)){
+        if (!request.getUserId().equals(folder.getUser().getId()) && folder.getSettings().contains(FolderSetting.DISABLE_ADD_FILE)) {
             throw new AccessDeniedException("You do not have the necessary permissions to access this resource.");
         }
-//////
 
-        User user = userRepo.findById(request.getUserId()).orElseThrow(()->
-                new IllegalArgumentException("user with id: "+request.getUserId()+" not found"));
 
+        User user = userRepo.findById(request.getUserId()).orElseThrow(() ->
+                new IllegalArgumentException("user with id: " + request.getUserId() + " not found"));
+
+        // send notification to admin folder
+        if (user.getId() != folder.getUser().getId()) {
+            notificationService.sendNotificationToAdminFolder(
+                    NotificationRequest.builder()
+                            .tittle("New File Uploaded in Your Group")
+                            .message(user.getFullname() + " has uploaded a new file to the group [" + folder.getName() + "] . Check it out to review or manage the content.")
+                            .user(folder.getUser())
+                            .build());
+        }
 
         String filename = uploadFile(request.getFile());
         File file = mapper.toEntity(filename, user);
@@ -156,9 +161,8 @@ public class FileServiceImpl implements FileService {
 
         if (file.getStatus() == FileStatus.UNAVAILABLE) {
             file.setStatus(FileStatus.AVAILABLE);
-            file.setBookedUser(null);
 
-            if (request.getFile() != null){
+            if (request.getFile() != null) {
                 String fileName = request.getFile().getOriginalFilename();
                 if (!file.getName().contains(fileName)) {
                     throw new IllegalArgumentException("Please upload the same file");
@@ -166,8 +170,13 @@ public class FileServiceImpl implements FileService {
                     fileName = uploadFile(request.getFile());
                     file.setName(fileName);
                 }
+                Message message = Message.builder()
+                        .setTopic("group" + file.getFolder().getId())
+                        .putData("title", "New Update")
+                        .putData("body", "The file" + fileName + "has been modified by " + file.getBookedUser().getFullname())
+                        .build();
             }
-
+            file.setBookedUser(null);
             return mapper.toDto(repo.save(file));
         } else {
             throw new IllegalArgumentException("File with id " + id + " is Available");

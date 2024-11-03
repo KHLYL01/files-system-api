@@ -39,6 +39,9 @@ public class User implements UserDetails {
 
     private String verificationCode;
 
+    @Column(name = "fcm_token")
+    private String fcmToken;
+
     @OneToMany(mappedBy = "user",fetch = FetchType.EAGER,orphanRemoval = true)
     private List<File> listOfFiles;
 
@@ -47,6 +50,9 @@ public class User implements UserDetails {
 
     @OneToMany(mappedBy = "user",cascade = CascadeType.REMOVE)
     private List<Folder> folders;
+
+    @OneToMany(mappedBy = "user",cascade = CascadeType.REMOVE)
+    private List<Notification> notifications;
 
     @Override
     public Collection<? extends GrantedAuthority> getAuthorities() {

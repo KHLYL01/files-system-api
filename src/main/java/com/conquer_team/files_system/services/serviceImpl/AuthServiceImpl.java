@@ -46,6 +46,8 @@ public class AuthServiceImpl implements AuthService {
         User user = repo.findByEmail(request.getEmail()).orElseThrow(
                         () -> new IllegalArgumentException("user with email " + request.getEmail() + " is not found")
                 );
+        user.setFcmToken(request.getFcmToken());
+        repo.save(user);
 
         String jwt = jwtService.generateToken(user);
         String refreshToken = jwtService.generateRefreshToken(new HashMap<>(),user);

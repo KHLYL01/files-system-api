@@ -2,6 +2,7 @@ package com.conquer_team.files_system.services.serviceImpl;
 
 import com.conquer_team.files_system.config.JwtService;
 import com.conquer_team.files_system.model.dto.requests.JoinToGroupRequest;
+import com.conquer_team.files_system.model.dto.requests.NotificationRequest;
 import com.conquer_team.files_system.model.dto.response.GetInvitationsResponse;
 import com.conquer_team.files_system.model.dto.response.GetRequestsJoiningResponse;
 import com.conquer_team.files_system.model.dto.response.UserResponse;
@@ -13,8 +14,10 @@ import com.conquer_team.files_system.model.enums.Role;
 import com.conquer_team.files_system.model.mapper.UserFolderMapper;
 import com.conquer_team.files_system.model.mapper.UserMapper;
 import com.conquer_team.files_system.repository.FolderRepo;
+import com.conquer_team.files_system.repository.NotificationRepo;
 import com.conquer_team.files_system.repository.UserFolderRepo;
 import com.conquer_team.files_system.repository.UserRepo;
+import com.conquer_team.files_system.services.NotificationService;
 import com.conquer_team.files_system.services.UserService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.core.userdetails.UserDetailsService;
@@ -33,6 +36,7 @@ public class UserServiceImpl implements UserService {
     private final JwtService jwtService;
     private final UserFolderRepo userFolderRepo;
     private final UserFolderMapper userFolderMapper;
+    private final NotificationService notificationService;
 
     @Override
     public UserDetailsService userDetailsService() {
@@ -56,12 +60,24 @@ public class UserServiceImpl implements UserService {
     @Transactional
     @Override
     public void joinToGroup(JoinToGroupRequest request) {
+        // get user
         User user = repo.findByEmail(jwtService.getCurrentUserName()).get();
 
+        // get folder
         Folder folder = folderRepo.findById(request.getFolderId()).orElseThrow(() ->
                 new IllegalArgumentException("folder not found"));
 
+        // create user_folder
         UserFolder userFolder = userFolderMapper.addUserFolder(folder,user,JoinStatus.REQUEST);
+
+        // send notification to admin folder
+        notificationService.sendNotificationToAdminFolder(
+                NotificationRequest.builder()
+                        .tittle("New Join Request for Your Group")
+                        .message(user.getFullname()+"has requested to join the group ["+folder.getName()+"]. Review and approve or deny the request.")
+                        .user(folder.getUser())
+                        .build()
+        );
 
         //ToDo
 //        user.addUserFolders(userFolder);
