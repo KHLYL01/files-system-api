@@ -1,7 +1,7 @@
 package com.conquer_team.files_system.aop;
 
 import com.conquer_team.files_system.config.JwtService;
-import com.conquer_team.files_system.model.dto.requests.AddUserFileRequest;
+import com.conquer_team.files_system.model.dto.requests.AddFileRequest;
 import com.conquer_team.files_system.model.dto.requests.InvitationUserToGroupRequest;
 import com.conquer_team.files_system.model.entity.File;
 import com.conquer_team.files_system.model.entity.Folder;
@@ -34,49 +34,51 @@ public class CheckUser {
     public void checkAdminFolder(JoinPoint joinPoint) {
         Object[] args = joinPoint.getArgs();
         long folderId;
-        if (args[0] instanceof InvitationUserToGroupRequest) {
-            InvitationUserToGroupRequest request1 = (InvitationUserToGroupRequest) args[0];
+        if (args[0] instanceof InvitationUserToGroupRequest request1) {
             folderId = request1.getFolderId();
-        } else if(args[0] instanceof AddUserFileRequest) {
-            AddUserFileRequest request2 = (AddUserFileRequest) args[0];
+        } else if (args[0] instanceof AddFileRequest request2) {
             folderId = request2.getFolderId();
-        }else {
+        } else {
             folderId = (long) args[0];
         }
 
-        User user = userRepo.findByEmail(jwtService.getCurrentUserName()).get();
+        User user = userRepo.findByEmail(jwtService.getCurrentUserName()).orElseThrow(() ->
+                new IllegalArgumentException("user not found"));
 
         Folder folder = folderRepo.findById(folderId).orElseThrow(() -> new IllegalArgumentException("not found folder"));
-        if (user.getId() != folder.getUser().getId()) {
+        if (!user.getId().equals(folder.getUser().getId())) {
             throw new AccessDeniedException("You do not have the necessary permissions to access this resource.");
         }
     }
 
 
-    @Before("execution(* com.conquer_team.files_system.controller.JoinController.acceptInvitationOrJoinRequest(..)) ||" +
+    @Before(value = "execution(* com.conquer_team.files_system.controller.JoinController.acceptInvitationOrJoinRequest(..)) ||" +
             "execution(* com.conquer_team.files_system.controller.JoinController.rejectInvitationOrJoinRequest(..)) ")
-    public void checkUser(JoinPoint joinPoint){
+    public void checkUser(JoinPoint joinPoint) {
         Object[] args = joinPoint.getArgs();
         Long userFolderId = (long) args[0];
         System.out.println(userFolderId);
 
-        User user = userRepo.findByEmail(jwtService.getCurrentUserName()).get();
+        User user = userRepo.findByEmail(jwtService.getCurrentUserName()).orElseThrow(() ->
+                new IllegalArgumentException("user not found"));
         System.out.print(user.getId());
-        UserFolder userFolder = userFolderRepo.findById(userFolderId).get();
+        UserFolder userFolder = userFolderRepo.findById(userFolderId).orElseThrow(() ->
+                new IllegalArgumentException("user not found"));
 
-        if(user.getId() != userFolder.getUser().getId() && user.getId() != userFolder.getFolder().getUser().getId()){
+        if (!user.getId().equals(userFolder.getUser().getId()) && !user.getId().equals(userFolder.getFolder().getUser().getId())) {
             throw new AccessDeniedException("You do not have the necessary permissions to access this resource.");
         }
     }
 
     @Before("execution(* com.conquer_team.files_system.controller.FileController.checkOut(..))")
-    public void checkBookedUser(JoinPoint joinPoint){
-        Long fileId = (long)joinPoint.getArgs()[0];
-        File file = fileRepo.findById(fileId).orElseThrow(()->
+    public void checkBookedUser(JoinPoint joinPoint) {
+        Long fileId = (long) joinPoint.getArgs()[0];
+        File file = fileRepo.findById(fileId).orElseThrow(() ->
                 new IllegalArgumentException("file not found"));
-        User user = userRepo.findByEmail(jwtService.getCurrentUserName()).get();
-        if(file.getBookedUser().getId() != user.getId()){
-            throw new  AccessDeniedException("You do not have the necessary permissions to access this resource.");
+        User user = userRepo.findByEmail(jwtService.getCurrentUserName()).orElseThrow(()->
+                new IllegalArgumentException("user not found"));
+        if (!file.getBookedUser().getId().equals(user.getId())) {
+            throw new AccessDeniedException("You do not have the necessary permissions to access this resource.");
         }
     }
 

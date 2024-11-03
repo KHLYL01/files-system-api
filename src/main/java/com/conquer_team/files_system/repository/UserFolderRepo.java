@@ -14,5 +14,6 @@ public interface UserFolderRepo extends JpaRepository<UserFolder,Long> {
     List<UserFolder> findByUserIdAndStatus(long id,JoinStatus status);
     List<UserFolder> findByFolderIdAndStatus(long id, JoinStatus status);
    // List<UserFolder> findAllByUserIdAndAndStatus(long id,JoinStatus type);
-    Optional<UserFolder> searchByUserIdAndFolderIdAndStatus(long user_id, long folder_id,JoinStatus status);
+
+    boolean existsByUserIdAndFolderIdAndStatus(Long userId,Long folderId, JoinStatus accepted);
 }

@@ -1,7 +1,7 @@
 package com.conquer_team.files_system.services.serviceImpl;
 
 import com.conquer_team.files_system.config.JwtService;
-import com.conquer_team.files_system.model.dto.requests.AddUserFileRequest;
+import com.conquer_team.files_system.model.dto.requests.AddFileRequest;
 import com.conquer_team.files_system.model.dto.requests.CheckInAllFileRequest;
 import com.conquer_team.files_system.model.dto.requests.CheckInFileRequest;
 import com.conquer_team.files_system.model.dto.requests.CheckOutRequest;
@@ -10,6 +10,7 @@ import com.conquer_team.files_system.model.entity.File;
 import com.conquer_team.files_system.model.entity.Folder;
 import com.conquer_team.files_system.model.entity.User;
 import com.conquer_team.files_system.model.enums.FileStatus;
+import com.conquer_team.files_system.model.enums.FolderSetting;
 import com.conquer_team.files_system.model.enums.JoinStatus;
 import com.conquer_team.files_system.model.mapper.FileMapper;
 import com.conquer_team.files_system.repository.FileRepo;
@@ -68,13 +69,33 @@ public class FileServiceImpl implements FileService {
 
     @Transactional
     @Override
-    public FileResponse save(AddUserFileRequest request) throws IOException {
-        User user = userRepo.findByEmail(jwtService.getCurrentUserName()).orElseThrow(
-                () -> new IllegalArgumentException("user not found")
-        );
+    public FileResponse save(AddFileRequest request) throws IOException {
 
+        //ToDo make user add file also if grop is not (disable Add File)
+
+//        User user = userRepo.findByEmail(jwtService.getCurrentUserName()).orElseThrow(
+//                () -> new IllegalArgumentException("user not found")
+//        );
+//////
+        // check if user  in folder
+        if(!userFolderRepo.existsByUserIdAndFolderIdAndStatus(request.getUserId(),request.getFolderId(),JoinStatus.ACCEPTED)){
+            System.out.println("you are out this folder");
+            throw new AccessDeniedException("You do not have the necessary permissions to access this resource.");
+        }
+
+        // get folder
         Folder folder = folderRepo.findById(request.getFolderId()).orElseThrow(() ->
                 new IllegalArgumentException("folder not found"));
+
+        // check if user id equals owner id and folder setting not (contains Disable add folder)
+        if(!request.getUserId().equals(folder.getUser().getId()) && folder.getSettings().contains(FolderSetting.DISABLE_ADD_FILE)){
+            throw new AccessDeniedException("You do not have the necessary permissions to access this resource.");
+        }
+//////
+
+        User user = userRepo.findById(request.getUserId()).orElseThrow(()->
+                new IllegalArgumentException("user with id: "+request.getUserId()+" not found"));
+
 
         String filename = uploadFile(request.getFile());
         File file = mapper.toEntity(filename, user);
@@ -94,8 +115,8 @@ public class FileServiceImpl implements FileService {
                     () -> new IllegalArgumentException("User with id " + request.getUserId() + " is not found")
             );
 
-            if (user.getId() != file.getFolder().getUser().getId() &&
-                    !userFolderRepo.searchByUserIdAndFolderIdAndStatus(user.getId(), file.getFolder().getId(), JoinStatus.ACCEPTED).isPresent()) {
+            if (!user.getId().equals(file.getFolder().getUser().getId()) &&
+                    !userFolderRepo.existsByUserIdAndFolderIdAndStatus(user.getId(), file.getFolder().getId(), JoinStatus.ACCEPTED)) {
                 throw new AccessDeniedException("You do not have the necessary permissions to access this resource.");
             }
 

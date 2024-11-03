@@ -40,8 +40,8 @@ public class FileController {
     }
 
     @PostMapping(consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
-    @AdminFolder
-    public ResponseEntity<?> save(@ModelAttribute AddUserFileRequest request) throws IOException {
+//    @AdminFolder
+    public ResponseEntity<?> save(@ModelAttribute AddFileRequest request) throws IOException {
         return new ResponseEntity<>(fileService.save(request) , HttpStatus.CREATED);
     }
 

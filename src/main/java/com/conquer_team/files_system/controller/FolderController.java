@@ -1,8 +1,7 @@
 package com.conquer_team.files_system.controller;
 
 import com.conquer_team.files_system.model.dto.requests.AddFolderRequest;
-import com.conquer_team.files_system.model.dto.requests.InvitationUserToGroupRequest;
-import com.conquer_team.files_system.notation.AdminFolder;
+import com.conquer_team.files_system.model.dto.requests.UpdateFolderRequest;
 import com.conquer_team.files_system.services.FolderService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
@@ -42,6 +41,11 @@ public class FolderController {
     @PostMapping
     public ResponseEntity<?> save(@RequestBody AddFolderRequest request) {
         return new ResponseEntity<>(folderService.save(request), HttpStatus.CREATED);
+    }
+
+    @PutMapping("/{id}")
+    public ResponseEntity<?> update(@PathVariable Long id,@RequestBody UpdateFolderRequest request) {
+        return ResponseEntity.ok(folderService.update(request,id));
     }
 
 

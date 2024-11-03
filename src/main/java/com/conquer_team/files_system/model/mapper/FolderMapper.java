@@ -2,12 +2,16 @@ package com.conquer_team.files_system.model.mapper;
 
 
 import com.conquer_team.files_system.model.dto.requests.AddFolderRequest;
+import com.conquer_team.files_system.model.dto.requests.UpdateFolderRequest;
 import com.conquer_team.files_system.model.dto.response.FolderResponse;
 import com.conquer_team.files_system.model.entity.Folder;
+import com.conquer_team.files_system.model.enums.FolderSetting;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 @Service
@@ -36,6 +40,7 @@ public class FolderMapper {
                 .owner(userMapper.toDto(entity.getUser()))
                 .files(fileMapper.toDtos(entity.getListOfFiles()))
                 .usersInFolder(userFolderMapper.toDtos(entity.getUserFolders()))
+                .settings(entity.getSettings())
                 .build();
     }
 
@@ -48,4 +53,18 @@ public class FolderMapper {
     }
 
 
+    public Folder toEntity(UpdateFolderRequest dto,Folder folder) {
+        Set<FolderSetting> settings = new HashSet<>();
+        if(dto.isPrivateFolder()){
+            settings.add(FolderSetting.PRIVATE_FOLDER);
+        }
+        if(dto.isDisableAddFile()){
+            settings.add(FolderSetting.DISABLE_ADD_FILE);
+        }
+
+        folder.setName(dto.getName());
+        folder.setSettings(settings);
+
+        return folder;
+    }
 }

@@ -1,10 +1,13 @@
 package com.conquer_team.files_system.model.entity;
 
+import com.conquer_team.files_system.model.enums.FolderSetting;
 import jakarta.persistence.*;
 import lombok.*;
 
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 @Entity
 @Setter
@@ -21,6 +24,10 @@ public class Folder {
 
     private String name;
 
+    @ElementCollection(targetClass = FolderSetting.class)
+    @Enumerated(EnumType.STRING)
+    private Set<FolderSetting> settings = new HashSet<>();
+
     @ManyToOne
     @JoinColumn(name = "owner_id",referencedColumnName = "id")
     private User user;
@@ -31,22 +38,4 @@ public class Folder {
     @OneToMany(mappedBy = "folder", cascade = CascadeType.ALL)
     private List<UserFolder> userFolders;
 
-
-//    public void addUserFolders(UserFolder userFolder){
-//        if(userFolders == null){
-//            userFolders = new ArrayList<>();
-//            userFolders.add(userFolder);
-//        }else {
-//            userFolders.add(userFolder);
-//        }
-//    }
-//
-//    public void addFiles(File file){
-//        if(listOfFiles == null){
-//            listOfFiles = new ArrayList<>();
-//            listOfFiles.add(file);
-//        }else {
-//            listOfFiles.add(file);
-//        }
-//    }
 }

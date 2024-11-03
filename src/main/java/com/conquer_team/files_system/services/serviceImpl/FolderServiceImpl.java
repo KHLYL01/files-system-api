@@ -3,10 +3,12 @@ package com.conquer_team.files_system.services.serviceImpl;
 import com.conquer_team.files_system.config.JwtService;
 import com.conquer_team.files_system.model.dto.requests.AddFolderRequest;
 import com.conquer_team.files_system.model.dto.requests.InvitationUserToGroupRequest;
+import com.conquer_team.files_system.model.dto.requests.UpdateFolderRequest;
 import com.conquer_team.files_system.model.dto.response.FolderResponse;
 import com.conquer_team.files_system.model.entity.Folder;
 import com.conquer_team.files_system.model.entity.User;
 import com.conquer_team.files_system.model.entity.UserFolder;
+import com.conquer_team.files_system.model.enums.FolderSetting;
 import com.conquer_team.files_system.model.enums.JoinStatus;
 import com.conquer_team.files_system.model.mapper.FolderMapper;
 import com.conquer_team.files_system.model.mapper.UserFolderMapper;
@@ -18,7 +20,10 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 @Service
 @RequiredArgsConstructor
@@ -39,16 +44,16 @@ public class FolderServiceImpl implements FolderService {
 
     @Override
     public List<FolderResponse> getMyFolder() {
-        User user = userRepo.findByEmail(jwtService.getCurrentUserName()).orElseThrow(()->
+        User user = userRepo.findByEmail(jwtService.getCurrentUserName()).orElseThrow(() ->
                 new IllegalArgumentException("user not found"));
         return mapper.toDtos(user.getFolders());
     }
 
     @Override
     public List<FolderResponse> getOtherFolder() {
-        User user = userRepo.findByEmail(jwtService.getCurrentUserName()).orElseThrow(()->
+        User user = userRepo.findByEmail(jwtService.getCurrentUserName()).orElseThrow(() ->
                 new IllegalArgumentException("user not found"));
-        return mapper.toDtos(repo.findAllByUserIdNot(user.getId()));
+        return mapper.toDtos(repo.findAllByUserIdNotAndSettingsNotContaining(user.getId(), FolderSetting.PRIVATE_FOLDER));
     }
 
     @Override
@@ -75,14 +80,12 @@ public class FolderServiceImpl implements FolderService {
     @Override
     public void invitationUser(InvitationUserToGroupRequest request) {
 
-        User user = userRepo.findById(request.getUserId()).orElseThrow(()->
-                new IllegalArgumentException("user by id: "+request.getUserId()+" not found"));
-        Folder folder = repo.findById(request.getFolderId()).orElseThrow(()->
-                new IllegalArgumentException("folder by id: "+ request.getFolderId()+" not found"));
+        User user = userRepo.findById(request.getUserId()).orElseThrow(() ->
+                new IllegalArgumentException("user by id: " + request.getUserId() + " not found"));
+        Folder folder = repo.findById(request.getFolderId()).orElseThrow(() ->
+                new IllegalArgumentException("folder by id: " + request.getFolderId() + " not found"));
 
-        UserFolder userFolder = userFolderMapper.addUserFolder(folder,user,JoinStatus.INVITATION);
-
-        //ToDo save user folder
+        UserFolder userFolder = userFolderMapper.addUserFolder(folder, user, JoinStatus.INVITATION);
         userFolderRepo.save(userFolder);
     }
 
@@ -90,12 +93,22 @@ public class FolderServiceImpl implements FolderService {
     @Transactional
     @Override
     public FolderResponse save(AddFolderRequest request) {
-        User user = userRepo.findByEmail(jwtService.getCurrentUserName()).orElseThrow(()->
+        User user = userRepo.findByEmail(jwtService.getCurrentUserName()).orElseThrow(() ->
                 new IllegalArgumentException("user not found"));
         Folder folder = mapper.toEntity(request);
 
-        //ToDo save Folder
         folder.setUser(user);
+
+        return mapper.toDto(repo.save(folder));
+    }
+
+    @Override
+    public FolderResponse update(UpdateFolderRequest request, Long id) {
+        Folder folder = repo.findById(id).orElseThrow(() ->
+                new IllegalArgumentException("Folder with id " + id + "not found"));
+
+        folder = mapper.toEntity(request, folder);
+
         return mapper.toDto(repo.save(folder));
     }
 

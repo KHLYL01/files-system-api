@@ -17,7 +17,7 @@ public interface FileService {
 
     List<FileResponse> findAllByFolderId(Long folderId);
 
-    FileResponse save(AddUserFileRequest request) throws IOException;
+    FileResponse save(AddFileRequest request) throws IOException;
 
     FileResponse checkIn(CheckInFileRequest request);
 
