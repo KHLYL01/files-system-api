@@ -19,7 +19,9 @@ import com.conquer_team.files_system.repository.UserFolderRepo;
 import com.conquer_team.files_system.repository.UserRepo;
 import com.conquer_team.files_system.services.NotificationService;
 import com.conquer_team.files_system.services.UserService;
+import com.google.firebase.messaging.FirebaseMessagingException;
 import lombok.RequiredArgsConstructor;
+import org.springframework.context.annotation.Lazy;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Service;
@@ -38,12 +40,7 @@ public class UserServiceImpl implements UserService {
     private final UserFolderMapper userFolderMapper;
     private final NotificationService notificationService;
 
-    @Override
-    public UserDetailsService userDetailsService() {
-        return username -> repo.findByEmail(username).orElseThrow(
-                () -> new UsernameNotFoundException("user with email " + username + " is not found")
-        );
-    }
+
 
     @Override
     public List<UserResponse> getAllOutFolder(long id) {
@@ -71,13 +68,17 @@ public class UserServiceImpl implements UserService {
         UserFolder userFolder = userFolderMapper.addUserFolder(folder,user,JoinStatus.REQUEST);
 
         // send notification to admin folder
-        notificationService.sendNotificationToAdminFolder(
-                NotificationRequest.builder()
-                        .tittle("New Join Request for Your Group")
-                        .message(user.getFullname()+"has requested to join the group ["+folder.getName()+"]. Review and approve or deny the request.")
-                        .user(folder.getUser())
-                        .build()
-        );
+        try {
+            notificationService.sendNotificationToAdminFolder(
+                    NotificationRequest.builder()
+                            .tittle("New Join Request for Your Group")
+                            .message(user.getFullname() + "has requested to join the group [" + folder.getName() + "]. Review and approve or deny the request.")
+                            .user(folder.getUser())
+                            .build()
+            );
+        }catch (FirebaseMessagingException e){
+            throw new IllegalArgumentException(e.getLocalizedMessage());
+        }
 
         //ToDo
 //        user.addUserFolders(userFolder);

@@ -1,5 +1,6 @@
 package com.conquer_team.files_system.config;
 
+import com.conquer_team.files_system.services.UserDetailService;
 import com.conquer_team.files_system.services.UserService;
 import io.jsonwebtoken.ExpiredJwtException;
 import io.micrometer.common.util.StringUtils;
@@ -24,7 +25,8 @@ import java.io.IOException;
 public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
     private final JwtService jwtService;
-    private final UserService userService;
+//    private final UserService userService;
+    private final UserDetailService userDetailService;
 
     @Override
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain) throws ServletException, IOException {
@@ -42,7 +44,7 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
             jwt = authHeader.substring(7);
             username = jwtService.extractUsername(jwt);
             if (StringUtils.isNotEmpty(username) && SecurityContextHolder.getContext().getAuthentication() == null) {
-                UserDetails userDetails = userService.userDetailsService().loadUserByUsername(username);
+                UserDetails userDetails = userDetailService.userDetailsService().loadUserByUsername(username);
 
                 if (jwtService.isTokenValid(jwt, userDetails)) {
                     System.out.println("4.5");

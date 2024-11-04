@@ -16,6 +16,7 @@ import com.conquer_team.files_system.repository.UserFolderRepo;
 import com.conquer_team.files_system.repository.UserRepo;
 import com.conquer_team.files_system.services.FileService;
 import com.conquer_team.files_system.services.NotificationService;
+import com.google.firebase.messaging.FirebaseMessagingException;
 import com.google.firebase.messaging.Message;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
@@ -37,7 +38,6 @@ import java.util.UUID;
 public class FileServiceImpl implements FileService {
     private final FileRepo repo;
     private final FileMapper mapper;
-    private final JwtService jwtService;
     private final FolderRepo folderRepo;
     private final UserRepo userRepo;
     private final UserFolderRepo userFolderRepo;
@@ -94,12 +94,17 @@ public class FileServiceImpl implements FileService {
 
         // send notification to admin folder
         if (user.getId() != folder.getUser().getId()) {
-            notificationService.sendNotificationToAdminFolder(
-                    NotificationRequest.builder()
-                            .tittle("New File Uploaded in Your Group")
-                            .message(user.getFullname() + " has uploaded a new file to the group [" + folder.getName() + "] . Check it out to review or manage the content.")
-                            .user(folder.getUser())
-                            .build());
+            try {
+                notificationService.sendNotificationToAdminFolder(
+                        NotificationRequest.builder()
+                                .tittle("New File Uploaded in Your Group")
+                                .message(user.getFullname() + " has uploaded a new file to the group [" + folder.getName() + "] . Check it out to review or manage the content.")
+                                .user(folder.getUser())
+                                .build());
+            }catch (FirebaseMessagingException e){
+                throw  new IllegalArgumentException(e.getLocalizedMessage());
+            }
+
         }
 
         String filename = uploadFile(request.getFile());
@@ -170,11 +175,19 @@ public class FileServiceImpl implements FileService {
                     fileName = uploadFile(request.getFile());
                     file.setName(fileName);
                 }
-                Message message = Message.builder()
-                        .setTopic("group" + file.getFolder().getId())
-                        .putData("title", "New Update")
-                        .putData("body", "The file" + fileName + "has been modified by " + file.getBookedUser().getFullname())
-                        .build();
+
+                try {
+                    notificationService.sendToAllMembers(
+                            NotificationRequest.builder()
+                                    .tittle("New Update")
+                                    .message("The file" + fileName + "has been modified by " + file.getBookedUser().getFullname())
+                                    .topic("group" + file.getFolder().getId())
+                                    .build()
+                    );
+                }catch (FirebaseMessagingException e){
+                    throw  new IllegalArgumentException(e.getLocalizedMessage());
+                }
+
             }
             file.setBookedUser(null);
             return mapper.toDto(repo.save(file));

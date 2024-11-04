@@ -1,10 +1,12 @@
 package com.conquer_team.files_system.config;
 
+import com.conquer_team.files_system.services.UserDetailService;
 import com.conquer_team.files_system.services.UserService;
 import com.google.auth.oauth2.GoogleCredentials;
 import com.google.firebase.FirebaseApp;
 import com.google.firebase.FirebaseOptions;
 import com.google.firebase.messaging.FirebaseMessaging;
+import jakarta.annotation.PostConstruct;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
@@ -34,9 +36,9 @@ import java.io.IOException;
 public class SecurityConfiguration {
 
     private final JwtAuthenticationFilter jwtAuthenticationFilter;
-    private final UserService userService;
-    @Value("${app.firebase-configuration-file}")
-    private String firebaseConfigPath;
+    private final UserDetailService userService;
+    private String firebaseConfigPath = "filemanager-446f0-firebase-adminsdk-omy7t-850956bec0.json" ;
+
 
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
@@ -113,4 +115,6 @@ public class SecurityConfiguration {
 
         return FirebaseMessaging.getInstance(app);
     }
+
+
 }

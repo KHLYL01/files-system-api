@@ -11,5 +11,6 @@ import lombok.Data;
 public class NotificationRequest {
     private String tittle;
     private String message;
+    private String topic;
     private User user;
 }

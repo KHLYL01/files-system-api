@@ -52,7 +52,16 @@ public class User implements UserDetails {
     private List<Folder> folders;
 
     @OneToMany(mappedBy = "user",cascade = CascadeType.REMOVE)
-    private List<Notification> notifications;
+    private List<Notifications> notifications;
+
+    public void AddNotification(Notifications notification){
+        if (notifications.isEmpty()){
+            notifications = new ArrayList<>();
+            notifications.add(notification);
+        }else {
+            notifications.add(notification);
+        }
+    }
 
     @Override
     public Collection<? extends GrantedAuthority> getAuthorities() {

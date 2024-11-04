@@ -19,6 +19,7 @@ import com.conquer_team.files_system.repository.UserFolderRepo;
 import com.conquer_team.files_system.repository.UserRepo;
 import com.conquer_team.files_system.services.FolderService;
 import com.conquer_team.files_system.services.NotificationService;
+import com.google.firebase.messaging.FirebaseMessagingException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -89,13 +90,17 @@ public class FolderServiceImpl implements FolderService {
         Folder folder = repo.findById(request.getFolderId()).orElseThrow(() ->
                 new IllegalArgumentException("folder by id: " + request.getFolderId() + " not found"));
 
-        notificationService.sendNotificationToAdminFolder(
-                NotificationRequest.builder()
-                        .tittle("You've Been Invited to Join a Group")
-                        .message("You have received an invitation to join the group ["+folder.getName()+"] By"+folder.getUser().getFullname() +". Tap to view the details and accept the invitation")
-                        .user(user)
-                        .build()
-        );
+        try {
+            notificationService.sendNotificationToAdminFolder(
+                    NotificationRequest.builder()
+                            .tittle("You've Been Invited to Join a Group")
+                            .message("You have received an invitation to join the group [" + folder.getName() + "] By" + folder.getUser().getFullname() + ". Tap to view the details and accept the invitation")
+                            .user(user)
+                            .build()
+            );
+        }catch (FirebaseMessagingException e){
+            throw new IllegalArgumentException(e.getLocalizedMessage());
+        }
 
         UserFolder userFolder = userFolderMapper.addUserFolder(folder, user, JoinStatus.INVITATION);
         userFolderRepo.save(userFolder);
