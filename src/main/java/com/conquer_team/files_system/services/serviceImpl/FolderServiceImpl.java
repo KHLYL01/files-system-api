@@ -91,7 +91,7 @@ public class FolderServiceImpl implements FolderService {
                 new IllegalArgumentException("folder by id: " + request.getFolderId() + " not found"));
 
         try {
-            notificationService.sendNotificationToAdminFolder(
+            notificationService.sendNotificationToUser(
                     NotificationRequest.builder()
                             .tittle("You've Been Invited to Join a Group")
                             .message("You have received an invitation to join the group [" + folder.getName() + "] By" + folder.getUser().getFullname() + ". Tap to view the details and accept the invitation")

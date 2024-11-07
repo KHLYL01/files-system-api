@@ -30,7 +30,7 @@ public class FileMapper {
         return FileResponse.builder()
                 .id(entity.getId())
                 .name(entity.getName())
-                .url("/api/v1/downloads/"+entity.getName())
+                .url("/api/v1/downloads/?filename="+entity.getName()+"/"+entity.getBackups().get(entity.getBackups().size()-1).getName())
                 .status(entity.getStatus())
                 .bookedUser(userMapper.toDto(entity.getBookedUser()))
                 .folderId(entity.getFolder().getId())

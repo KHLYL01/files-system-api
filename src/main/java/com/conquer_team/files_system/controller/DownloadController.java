@@ -6,10 +6,7 @@ import org.springframework.core.io.ByteArrayResource;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 import java.io.File;
 import java.io.IOException;
@@ -25,8 +22,9 @@ public class DownloadController {
     @Value("${image.directory}")
     private String uploadImageDirectory;
 
-    @GetMapping("/{filename}")
-    public ResponseEntity<?> viewFile(@PathVariable String filename) throws IOException {
+    @GetMapping("/")
+    public ResponseEntity<?> viewFile(@RequestParam String filename) throws IOException {
+        System.out.println(filename);
         File file = new File(uploadImageDirectory + "/" + filename);
 
         HttpHeaders header = new HttpHeaders();
@@ -35,6 +33,7 @@ public class DownloadController {
         header.add("Pragma", "no-cache");
         header.add("Expires", "0");
 
+        System.out.println(file.getAbsolutePath());
         Path filePath = Paths.get(file.getAbsolutePath());
         ByteArrayResource resource = new ByteArrayResource(Files.readAllBytes(filePath));
 

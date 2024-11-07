@@ -69,7 +69,7 @@ public class UserServiceImpl implements UserService {
 
         // send notification to admin folder
         try {
-            notificationService.sendNotificationToAdminFolder(
+            notificationService.sendNotificationToUser(
                     NotificationRequest.builder()
                             .tittle("New Join Request for Your Group")
                             .message(user.getFullname() + "has requested to join the group [" + folder.getName() + "]. Review and approve or deny the request.")

@@ -45,7 +45,6 @@ public class FolderMapper {
     }
 
 
-
     public Folder toEntity(AddFolderRequest dto) {
         return Folder.builder()
                 .name(dto.getName())

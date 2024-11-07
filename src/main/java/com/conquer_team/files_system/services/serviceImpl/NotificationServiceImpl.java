@@ -30,7 +30,7 @@ public class NotificationServiceImpl implements NotificationService {
 
     @Transactional
     @Override
-    public void sendNotificationToAdminFolder(NotificationRequest request) throws FirebaseMessagingException {
+    public void sendNotificationToUser(NotificationRequest request) throws FirebaseMessagingException {
         //save notification info
         request.getUser().AddNotification(repo.save(mapper.toEntity(request)));
 
@@ -51,14 +51,13 @@ public class NotificationServiceImpl implements NotificationService {
     }
 
     @Override
-    public void sendToAllMembers(NotificationRequest request) throws FirebaseMessagingException {
+    public void sendNotificationToAllMembers(NotificationRequest request) throws FirebaseMessagingException {
         Message message = Message.builder()
                 .setTopic(request.getTopic())
                 .putData("title", request.getTittle())
                 .putData("body", request.getMessage())
                 .build();
         firebaseMessaging.send(message);
-
     }
 
     @Override

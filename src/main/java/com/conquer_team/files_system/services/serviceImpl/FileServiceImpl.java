@@ -3,6 +3,7 @@ package com.conquer_team.files_system.services.serviceImpl;
 import com.conquer_team.files_system.config.JwtService;
 import com.conquer_team.files_system.model.dto.requests.*;
 import com.conquer_team.files_system.model.dto.response.FileResponse;
+import com.conquer_team.files_system.model.entity.Backups;
 import com.conquer_team.files_system.model.entity.File;
 import com.conquer_team.files_system.model.entity.Folder;
 import com.conquer_team.files_system.model.entity.User;
@@ -10,10 +11,12 @@ import com.conquer_team.files_system.model.enums.FileStatus;
 import com.conquer_team.files_system.model.enums.FolderSetting;
 import com.conquer_team.files_system.model.enums.JoinStatus;
 import com.conquer_team.files_system.model.mapper.FileMapper;
+import com.conquer_team.files_system.model.mapper.UserMapper;
 import com.conquer_team.files_system.repository.FileRepo;
 import com.conquer_team.files_system.repository.FolderRepo;
 import com.conquer_team.files_system.repository.UserFolderRepo;
 import com.conquer_team.files_system.repository.UserRepo;
+import com.conquer_team.files_system.services.BackupService;
 import com.conquer_team.files_system.services.FileService;
 import com.conquer_team.files_system.services.NotificationService;
 import com.google.firebase.messaging.FirebaseMessagingException;
@@ -29,7 +32,10 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.StandardCopyOption;
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
 import java.util.UUID;
 
@@ -38,10 +44,12 @@ import java.util.UUID;
 public class FileServiceImpl implements FileService {
     private final FileRepo repo;
     private final FileMapper mapper;
+    private final UserMapper userMapper;
     private final FolderRepo folderRepo;
     private final UserRepo userRepo;
     private final UserFolderRepo userFolderRepo;
     private final NotificationService notificationService;
+    private final BackupService backupService;
 
     @Value("${image.directory}")
     private String uploadImageDirectory;
@@ -73,46 +81,60 @@ public class FileServiceImpl implements FileService {
 
         //ToDo make user add file also if group is not (disable Add File)
 
-        // check if user  in folder
-        if (!userFolderRepo.existsByUserIdAndFolderIdAndStatus(request.getUserId(), request.getFolderId(), JoinStatus.ACCEPTED)) {
-            System.out.println("you are out this folder");
-            throw new AccessDeniedException("You do not have the necessary permissions to access this resource.");
-        }
-
         // get folder
         Folder folder = folderRepo.findById(request.getFolderId()).orElseThrow(() ->
                 new IllegalArgumentException("folder not found"));
+
+        // check if user  in folder
+        if (!userFolderRepo.existsByUserIdAndFolderIdAndStatus(request.getUserId(), request.getFolderId(), JoinStatus.ACCEPTED) && !folder.getUser().getId().equals(request.getUserId())) {
+            System.out.println("you are out this folder");
+            throw new AccessDeniedException("You do not have the necessary permissions to access this resource.");
+        }
 
         // check if user id equals owner id and folder setting not (contains Disable add folder)
         if (!request.getUserId().equals(folder.getUser().getId()) && folder.getSettings().contains(FolderSetting.DISABLE_ADD_FILE)) {
             throw new AccessDeniedException("You do not have the necessary permissions to access this resource.");
         }
 
-
         User user = userRepo.findById(request.getUserId()).orElseThrow(() ->
                 new IllegalArgumentException("user with id: " + request.getUserId() + " not found"));
 
-        // send notification to admin folder
+        String filename = uploadFile(request.getFile(),null);
+        File file = mapper.toEntity(filename, user);
+
+        file.setFolder(folder);
+
+
+       //  send notification to admin folder
         if (user.getId() != folder.getUser().getId()) {
             try {
-                notificationService.sendNotificationToAdminFolder(
+                notificationService.sendNotificationToUser(
                         NotificationRequest.builder()
                                 .tittle("New File Uploaded in Your Group")
                                 .message(user.getFullname() + " has uploaded a new file to the group [" + folder.getName() + "] . Check it out to review or manage the content.")
                                 .user(folder.getUser())
                                 .build());
-            }catch (FirebaseMessagingException e){
-                throw  new IllegalArgumentException(e.getLocalizedMessage());
+            } catch (FirebaseMessagingException e) {
+                throw new IllegalArgumentException(e.getLocalizedMessage());
             }
 
         }
 
-        String filename = uploadFile(request.getFile());
-        File file = mapper.toEntity(filename, user);
+        File file1 = repo.save(file);
 
-        file.setFolder(folder);
+       Backups backups =  backupService.addBackup(BackupRequest.builder()
+                .name(filename)
+                .file(file1)
+                .build());
 
-        return mapper.toDto(repo.save(file));
+        return FileResponse.builder()
+                .id(file1.getId())
+                .name(file1.getName())
+                .url("/api/v1/downloads/?filename="+filename+"/"+backups.getName())
+                .status(file1.getStatus())
+                .bookedUser(userMapper.toDto(file1.getBookedUser()))
+                .folderId(file1.getFolder().getId())
+                .build();
     }
 
     @Override
@@ -134,8 +156,9 @@ public class FileServiceImpl implements FileService {
             file.setBookedUser(user);
 
             //ToDo removed list of files
-//            user.addFile(file);
-            return mapper.toDto(repo.save(file));
+
+             return mapper.toDto(repo.save(file));
+
         } else {
             throw new IllegalArgumentException("File with id " + request.getFileId() + " is not Available");
         }
@@ -163,7 +186,6 @@ public class FileServiceImpl implements FileService {
         File file = repo.findById(id).orElseThrow(
                 () -> new IllegalArgumentException("File with id " + id + " is not found")
         );
-
         if (file.getStatus() == FileStatus.UNAVAILABLE) {
             file.setStatus(FileStatus.AVAILABLE);
 
@@ -172,12 +194,15 @@ public class FileServiceImpl implements FileService {
                 if (!file.getName().contains(fileName)) {
                     throw new IllegalArgumentException("Please upload the same file");
                 } else {
-                    fileName = uploadFile(request.getFile());
-                    file.setName(fileName);
+                    fileName = uploadFile(request.getFile(),file.getName());
+                    backupService.addBackup(BackupRequest.builder()
+                            .name(fileName)
+                            .file(file)
+                            .build());
                 }
 
                 try {
-                    notificationService.sendToAllMembers(
+                    notificationService.sendNotificationToAllMembers(
                             NotificationRequest.builder()
                                     .tittle("New Update")
                                     .message("The file" + fileName + "has been modified by " + file.getBookedUser().getFullname())
@@ -217,11 +242,18 @@ public class FileServiceImpl implements FileService {
 
 
     @Override
-    public String uploadFile(MultipartFile file) throws IOException {
-        String uniqueFileName = UUID.randomUUID() + "_" + file.getOriginalFilename();
-
-        Path uploadPath = Path.of(uploadImageDirectory);
-        Path filePath = uploadPath.resolve(uniqueFileName);
+    public String uploadFile(MultipartFile file,String path) throws IOException {
+        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd_HH_mm_ss");
+        String timestamp = LocalDateTime.now().format(formatter);
+        Path uploadPath = null;
+        Path filePath;
+        String uniqueFileName = timestamp + UUID.randomUUID() + "_" + file.getOriginalFilename();
+        if(path == null) {
+           uploadPath  = Path.of(uploadImageDirectory + uniqueFileName);
+        }else {
+            uploadPath  = Path.of(uploadImageDirectory + path);
+        }
+        filePath = uploadPath.resolve(uniqueFileName);
 
         if (!Files.exists(uploadPath)) {
             Files.createDirectories(uploadPath);
@@ -240,5 +272,10 @@ public class FileServiceImpl implements FileService {
         }
     }
 
-
+    @Override
+    public FileResponse getById(long id) {
+        File file = repo.findById(id).orElseThrow(() ->
+                new IllegalArgumentException("file not found by id:" + id));
+        return mapper.toDto(file);
+    }
 }

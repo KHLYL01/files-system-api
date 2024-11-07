@@ -26,11 +26,13 @@ public interface FileService {
 
     void deleteById(Long id);
 
-    String uploadFile(MultipartFile file) throws IOException;
+    String uploadFile(MultipartFile file,String path) throws IOException;
 
     void deleteFile(String fileName) throws IOException;
 
     FileResponse checkOut(CheckOutRequest request, long id) throws IOException;
+
+    FileResponse getById(long id);
 
 //    byte[] viewFile(String fileName) throws IOException;
 

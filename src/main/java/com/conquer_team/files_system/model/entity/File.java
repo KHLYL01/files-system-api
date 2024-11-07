@@ -4,6 +4,9 @@ import com.conquer_team.files_system.model.enums.FileStatus;
 import jakarta.persistence.*;
 import lombok.*;
 
+import java.util.List;
+import java.util.Set;
+
 @Entity
 @Setter
 @Getter
@@ -33,6 +36,9 @@ public class File {
     @ManyToOne
     @JoinColumn(name = "folder_id")
     private Folder folder;
+
+    @OneToMany(mappedBy = "file",cascade = CascadeType.REMOVE)
+    private List<Backups> backups;
 
     @PrePersist
     public void prePersist() {

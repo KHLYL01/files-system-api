@@ -29,6 +29,11 @@ public class FileController {
 //        return ResponseEntity.ok(fileService.findAllByUserId(id));
 //    }
 
+    @GetMapping("/{id}")
+    public ResponseEntity<?> getById(@PathVariable long id){
+        return ResponseEntity.status(200).body(fileService.getById(id));
+    }
+
     @GetMapping("booked/users/{id}")
     public ResponseEntity<?> findAllBookedByUserId(@PathVariable Long id) {
         return ResponseEntity.ok(fileService.findAllBookedFileByUserId(id));

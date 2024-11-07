@@ -8,9 +8,9 @@ import java.util.List;
 
 public interface NotificationService {
 
-   void sendNotificationToAdminFolder(NotificationRequest request) throws  FirebaseMessagingException;
+   void sendNotificationToUser(NotificationRequest request) throws  FirebaseMessagingException;
 
-   void sendToAllMembers(NotificationRequest request) throws FirebaseMessagingException;
+   void sendNotificationToAllMembers(NotificationRequest request) throws FirebaseMessagingException;
 
    List<NotificationResponse> getAllNotificationsByUserId();
 
