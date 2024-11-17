@@ -1,6 +1,5 @@
 package com.conquer_team.files_system.services.serviceImpl;
 
-import com.conquer_team.files_system.config.JwtService;
 import com.conquer_team.files_system.model.dto.requests.*;
 import com.conquer_team.files_system.model.dto.response.FileResponse;
 import com.conquer_team.files_system.model.entity.Backups;
@@ -11,7 +10,6 @@ import com.conquer_team.files_system.model.enums.FileStatus;
 import com.conquer_team.files_system.model.enums.FolderSetting;
 import com.conquer_team.files_system.model.enums.JoinStatus;
 import com.conquer_team.files_system.model.mapper.FileMapper;
-import com.conquer_team.files_system.model.mapper.UserMapper;
 import com.conquer_team.files_system.repository.FileRepo;
 import com.conquer_team.files_system.repository.FolderRepo;
 import com.conquer_team.files_system.repository.UserFolderRepo;
@@ -20,7 +18,6 @@ import com.conquer_team.files_system.services.BackupService;
 import com.conquer_team.files_system.services.FileService;
 import com.conquer_team.files_system.services.NotificationService;
 import com.google.firebase.messaging.FirebaseMessagingException;
-import com.google.firebase.messaging.Message;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.access.AccessDeniedException;
@@ -35,16 +32,15 @@ import java.nio.file.StandardCopyOption;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
-import java.util.Date;
 import java.util.List;
 import java.util.UUID;
+import java.util.concurrent.ConcurrentHashMap;
 
 @Service
 @RequiredArgsConstructor
 public class FileServiceImpl implements FileService {
     private final FileRepo repo;
     private final FileMapper mapper;
-    private final UserMapper userMapper;
     private final FolderRepo folderRepo;
     private final UserRepo userRepo;
     private final UserFolderRepo userFolderRepo;
@@ -53,6 +49,11 @@ public class FileServiceImpl implements FileService {
 
     @Value("${image.directory}")
     private String uploadImageDirectory;
+
+//    private final ReentrantLock lock = new ReentrantLock();
+
+    // Map to manage locks for each file
+    private final ConcurrentHashMap<Long, Object> fileLocks = new ConcurrentHashMap<>();
 
     @Override
     public List<FileResponse> findAll() {
@@ -79,8 +80,6 @@ public class FileServiceImpl implements FileService {
     @Override
     public FileResponse save(AddFileRequest request) throws IOException {
 
-        //ToDo make user add file also if group is not (disable Add File)
-
         // get folder
         Folder folder = folderRepo.findById(request.getFolderId()).orElseThrow(() ->
                 new IllegalArgumentException("folder not found"));
@@ -99,14 +98,12 @@ public class FileServiceImpl implements FileService {
         User user = userRepo.findById(request.getUserId()).orElseThrow(() ->
                 new IllegalArgumentException("user with id: " + request.getUserId() + " not found"));
 
-        String filename = uploadFile(request.getFile(),null);
+        String filename = uploadFile(request.getFile(), null);
         File file = mapper.toEntity(filename, user);
-
         file.setFolder(folder);
 
-
-       //  send notification to admin folder
-        if (user.getId() != folder.getUser().getId()) {
+        //  send notification to admin folder
+        if (!user.getId().equals(folder.getUser().getId())) {
             try {
                 notificationService.sendNotificationToUser(
                         NotificationRequest.builder()
@@ -120,47 +117,49 @@ public class FileServiceImpl implements FileService {
 
         }
 
-        File file1 = repo.save(file);
+        File savedFile = repo.save(file);
 
-       Backups backups =  backupService.addBackup(BackupRequest.builder()
+        Backups backups = backupService.addBackup(BackupRequest.builder()
                 .name(filename)
-                .file(file1)
+                .file(savedFile)
+                .user(user)
                 .build());
 
-        return FileResponse.builder()
-                .id(file1.getId())
-                .name(file1.getName())
-                .url("/api/v1/downloads/?filename="+filename+"/"+backups.getName())
-                .status(file1.getStatus())
-                .bookedUser(userMapper.toDto(file1.getBookedUser()))
-                .folderId(file1.getFolder().getId())
-                .build();
+        return mapper.toDto(savedFile, backups);
     }
 
     @Override
     public FileResponse checkIn(CheckInFileRequest request) {
-        File file = repo.findById(request.getFileId()).orElseThrow(
-                () -> new IllegalArgumentException("File with id " + request.getFileId() + " is not found")
-        );
-        if (file.getStatus() == FileStatus.AVAILABLE) {
-            User user = userRepo.findById(request.getUserId()).orElseThrow(
-                    () -> new IllegalArgumentException("User with id " + request.getUserId() + " is not found")
-            );
 
-            if (!user.getId().equals(file.getFolder().getUser().getId()) &&
-                    !userFolderRepo.existsByUserIdAndFolderIdAndStatus(user.getId(), file.getFolder().getId(), JoinStatus.ACCEPTED)) {
-                throw new AccessDeniedException("You do not have the necessary permissions to access this resource.");
+        Object lock  = fileLocks.computeIfAbsent(request.getFileId(),key -> new Object());
+//        lock.lock();
+        synchronized (lock) {
+            try {
+                File file = repo.findById(request.getFileId()).orElseThrow(
+                        () -> new IllegalArgumentException("File with id " + request.getFileId() + " is not found")
+                );
+                if (file.getStatus() == FileStatus.AVAILABLE) {
+                    User user = userRepo.findById(request.getUserId()).orElseThrow(
+                            () -> new IllegalArgumentException("User with id " + request.getUserId() + " is not found")
+                    );
+
+                    if (!user.getId().equals(file.getFolder().getUser().getId()) &&
+                            !userFolderRepo.existsByUserIdAndFolderIdAndStatus(user.getId(), file.getFolder().getId(), JoinStatus.ACCEPTED)) {
+                        throw new AccessDeniedException("You do not have the necessary permissions to access this resource.");
+                    }
+
+                    file.setStatus(FileStatus.UNAVAILABLE);
+                    file.setBookedUser(user);
+
+                    return mapper.toDto(repo.save(file));
+
+                } else {
+                    throw new IllegalArgumentException("File with id " + request.getFileId() + " is not Available");
+                }
+            } finally {
+                fileLocks.remove(request.getFileId(), lock);
+//                lock.unlock();
             }
-
-            file.setStatus(FileStatus.UNAVAILABLE);
-            file.setBookedUser(user);
-
-            //ToDo removed list of files
-
-             return mapper.toDto(repo.save(file));
-
-        } else {
-            throw new IllegalArgumentException("File with id " + request.getFileId() + " is not Available");
         }
     }
 
@@ -194,10 +193,11 @@ public class FileServiceImpl implements FileService {
                 if (!file.getName().contains(fileName)) {
                     throw new IllegalArgumentException("Please upload the same file");
                 } else {
-                    fileName = uploadFile(request.getFile(),file.getName());
+                    fileName = uploadFile(request.getFile(), file.getName());
                     backupService.addBackup(BackupRequest.builder()
                             .name(fileName)
                             .file(file)
+                            .user(file.getBookedUser())
                             .build());
                 }
 
@@ -209,8 +209,8 @@ public class FileServiceImpl implements FileService {
                                     .topic("group" + file.getFolder().getId())
                                     .build()
                     );
-                }catch (FirebaseMessagingException e){
-                    throw  new IllegalArgumentException(e.getLocalizedMessage());
+                } catch (FirebaseMessagingException e) {
+                    throw new IllegalArgumentException(e.getLocalizedMessage());
                 }
 
             }
@@ -242,16 +242,16 @@ public class FileServiceImpl implements FileService {
 
 
     @Override
-    public String uploadFile(MultipartFile file,String path) throws IOException {
+    public String uploadFile(MultipartFile file, String path) throws IOException {
         DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd_HH_mm_ss");
         String timestamp = LocalDateTime.now().format(formatter);
         Path uploadPath = null;
         Path filePath;
         String uniqueFileName = timestamp + UUID.randomUUID() + "_" + file.getOriginalFilename();
-        if(path == null) {
-           uploadPath  = Path.of(uploadImageDirectory + uniqueFileName);
-        }else {
-            uploadPath  = Path.of(uploadImageDirectory + path);
+        if (path == null) {
+            uploadPath = Path.of(uploadImageDirectory + uniqueFileName);
+        } else {
+            uploadPath = Path.of(uploadImageDirectory + path);
         }
         filePath = uploadPath.resolve(uniqueFileName);
 

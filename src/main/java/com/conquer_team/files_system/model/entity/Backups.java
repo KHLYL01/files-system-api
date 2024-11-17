@@ -27,6 +27,10 @@ public class Backups {
     @JoinColumn(name = "file_id")
     private File file;
 
+    @ManyToOne
+    @JoinColumn(name = "user_id")
+    private User user;
+
     @CreationTimestamp
     private LocalDateTime createdAt;
 }

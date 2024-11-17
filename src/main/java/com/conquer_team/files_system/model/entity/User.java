@@ -54,6 +54,9 @@ public class User implements UserDetails {
     @OneToMany(mappedBy = "user",cascade = CascadeType.REMOVE)
     private List<Notifications> notifications;
 
+    @OneToMany(mappedBy = "user",cascade = CascadeType.REMOVE)
+    private List<Backups> backups;
+
     public void AddNotification(Notifications notification){
         if (notifications.isEmpty()){
             notifications = new ArrayList<>();

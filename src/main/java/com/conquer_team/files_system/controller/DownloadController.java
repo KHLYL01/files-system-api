@@ -22,13 +22,13 @@ public class DownloadController {
     @Value("${image.directory}")
     private String uploadImageDirectory;
 
-    @GetMapping("/")
+    @GetMapping
     public ResponseEntity<?> viewFile(@RequestParam String filename) throws IOException {
         System.out.println(filename);
         File file = new File(uploadImageDirectory + "/" + filename);
 
         HttpHeaders header = new HttpHeaders();
-        header.add(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename="+ filename +".pdf");
+        header.add(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename="+ filename +".txt");
         header.add("Cache-Control", "no-cache, no-store, must-revalidate");
         header.add("Pragma", "no-cache");
         header.add("Expires", "0");

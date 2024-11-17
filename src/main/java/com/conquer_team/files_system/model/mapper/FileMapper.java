@@ -2,6 +2,7 @@ package com.conquer_team.files_system.model.mapper;
 
 
 import com.conquer_team.files_system.model.dto.response.FileResponse;
+import com.conquer_team.files_system.model.entity.Backups;
 import com.conquer_team.files_system.model.entity.File;
 import com.conquer_team.files_system.model.entity.User;
 import lombok.RequiredArgsConstructor;
@@ -30,7 +31,21 @@ public class FileMapper {
         return FileResponse.builder()
                 .id(entity.getId())
                 .name(entity.getName())
-                .url("/api/v1/downloads/?filename="+entity.getName()+"/"+entity.getBackups().get(entity.getBackups().size()-1).getName())
+                .url("/api/v1/downloads?filename="+entity.getName()+"/"+entity.getBackups().get(entity.getBackups().size()-1).getName())
+                .status(entity.getStatus())
+                .bookedUser(userMapper.toDto(entity.getBookedUser()))
+                .folderId(entity.getFolder().getId())
+                .build();
+    }
+
+    public FileResponse toDto(File entity, Backups backups){
+        if(entity == null){
+            return null;
+        }
+        return FileResponse.builder()
+                .id(entity.getId())
+                .name(entity.getName())
+                .url("/api/v1/downloads?filename="+entity.getName()+"/"+backups.getName())
                 .status(entity.getStatus())
                 .bookedUser(userMapper.toDto(entity.getBookedUser()))
                 .folderId(entity.getFolder().getId())

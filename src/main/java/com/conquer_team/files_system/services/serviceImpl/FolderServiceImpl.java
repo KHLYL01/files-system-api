@@ -14,7 +14,6 @@ import com.conquer_team.files_system.model.enums.JoinStatus;
 import com.conquer_team.files_system.model.mapper.FolderMapper;
 import com.conquer_team.files_system.model.mapper.UserFolderMapper;
 import com.conquer_team.files_system.repository.FolderRepo;
-import com.conquer_team.files_system.repository.NotificationRepo;
 import com.conquer_team.files_system.repository.UserFolderRepo;
 import com.conquer_team.files_system.repository.UserRepo;
 import com.conquer_team.files_system.services.FolderService;
@@ -24,10 +23,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.HashMap;
-import java.util.HashSet;
 import java.util.List;
-import java.util.Set;
 
 @Service
 @RequiredArgsConstructor
