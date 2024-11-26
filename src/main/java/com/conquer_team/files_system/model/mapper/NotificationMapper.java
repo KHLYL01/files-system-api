@@ -1,8 +1,10 @@
 package com.conquer_team.files_system.model.mapper;
 
+import com.conquer_team.files_system.model.entity.User;
 import com.conquer_team.files_system.model.dto.requests.NotificationRequest;
 import com.conquer_team.files_system.model.dto.response.NotificationResponse;
 import com.conquer_team.files_system.model.entity.Notifications;
+import com.conquer_team.files_system.repository.UserRepo;
 import lombok.AllArgsConstructor;
 import org.springframework.stereotype.Service;
 
@@ -13,11 +15,13 @@ import java.util.stream.Collectors;
 @AllArgsConstructor
 public class NotificationMapper {
 
+    private final UserRepo userRepo;
     public Notifications toEntity(NotificationRequest request){
+        User user = userRepo.findById(request.getUser_id()).get();
         return Notifications.builder()
                 .tittle(request.getTittle())
                 .message(request.getMessage())
-                .user(request.getUser())
+                .user(user)
                 .build();
     }
 

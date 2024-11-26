@@ -34,7 +34,7 @@ public class SecurityConfiguration {
 
     private final JwtAuthenticationFilter jwtAuthenticationFilter;
     private final UserDetailService userService;
-    private String firebaseConfigPath = "filemanager-446f0-firebase-adminsdk-omy7t-850956bec0.json";
+
 
 
     @Bean
@@ -97,21 +97,7 @@ public class SecurityConfiguration {
         return config.getAuthenticationManager();
     }
 
-    @Bean
-    FirebaseMessaging firebaseMessaging() throws IOException {
-        GoogleCredentials googleCredentials = GoogleCredentials.fromStream(
-                new ClassPathResource(firebaseConfigPath)
-                        .getInputStream()
-        );
 
-        FirebaseOptions firebaseOptions = FirebaseOptions.builder()
-                .setCredentials(googleCredentials)
-                .build();
-
-        FirebaseApp app = FirebaseApp.initializeApp(firebaseOptions, "file-system");
-
-        return FirebaseMessaging.getInstance(app);
-    }
 
 
 }

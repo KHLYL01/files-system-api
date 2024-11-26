@@ -1,10 +1,10 @@
 package com.conquer_team.files_system.model.mapper;
 
 
+import com.conquer_team.files_system.model.entity.Folder;
 import com.conquer_team.files_system.model.dto.requests.AddFolderRequest;
 import com.conquer_team.files_system.model.dto.requests.UpdateFolderRequest;
 import com.conquer_team.files_system.model.dto.response.FolderResponse;
-import com.conquer_team.files_system.model.entity.Folder;
 import com.conquer_team.files_system.model.enums.FolderSetting;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;

@@ -5,7 +5,6 @@ import jakarta.persistence.*;
 import lombok.*;
 
 import java.util.List;
-import java.util.Set;
 
 @Entity
 @Setter
@@ -33,12 +32,15 @@ public class File {
     @JoinColumn(name = "booked_user_id")
     private User bookedUser;
 
-    @ManyToOne
+    @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "folder_id")
     private Folder folder;
 
     @OneToMany(mappedBy = "file",cascade = CascadeType.REMOVE)
     private List<Backups> backups;
+
+    @OneToMany(mappedBy = "file",cascade = CascadeType.REMOVE)
+    private List<Archive> archives;
 
     @PrePersist
     public void prePersist() {

@@ -1,6 +1,5 @@
 package com.conquer_team.files_system.model.dto.response;
 
-import com.conquer_team.files_system.model.entity.User;
 import com.conquer_team.files_system.model.enums.FileStatus;
 import lombok.Builder;
 import lombok.Data;

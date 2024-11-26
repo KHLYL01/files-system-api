@@ -4,7 +4,6 @@ import com.conquer_team.files_system.model.enums.FolderSetting;
 import jakarta.persistence.*;
 import lombok.*;
 
-import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
@@ -35,7 +34,7 @@ public class Folder {
     @OneToMany(mappedBy = "folder",fetch = FetchType.EAGER,cascade = {CascadeType.REMOVE})
     private List<File> listOfFiles;
 
-    @OneToMany(mappedBy = "folder", cascade = CascadeType.ALL)
+    @OneToMany(mappedBy = "folder",cascade = CascadeType.ALL)
     private List<UserFolder> userFolders;
 
 }

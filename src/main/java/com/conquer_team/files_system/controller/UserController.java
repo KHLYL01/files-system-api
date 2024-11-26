@@ -1,10 +1,7 @@
 package com.conquer_team.files_system.controller;
 
-import com.conquer_team.files_system.model.dto.requests.JoinToGroupRequest;
-import com.conquer_team.files_system.notation.AdminFolder;
 import com.conquer_team.files_system.services.UserService;
 import lombok.RequiredArgsConstructor;
-import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
@@ -25,6 +22,11 @@ public class UserController {
     @GetMapping("/out-folder/{folderId}")
     public ResponseEntity<?> getAllUsersOutFolder(@PathVariable long folderId){
         return ResponseEntity.ok(userService.getAllOutFolder(folderId));
+    }
+
+    @GetMapping("/{id}")
+    public ResponseEntity<?> findById(@PathVariable long id){
+        return ResponseEntity.ok(userService.findById(id));
     }
 
 }

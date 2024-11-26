@@ -9,21 +9,19 @@ import com.conquer_team.files_system.model.dto.response.UserResponse;
 import com.conquer_team.files_system.model.entity.Folder;
 import com.conquer_team.files_system.model.entity.User;
 import com.conquer_team.files_system.model.entity.UserFolder;
+import com.conquer_team.files_system.model.enums.EventTypes;
 import com.conquer_team.files_system.model.enums.JoinStatus;
 import com.conquer_team.files_system.model.enums.Role;
+import com.conquer_team.files_system.model.mapper.OutBoxMapper;
 import com.conquer_team.files_system.model.mapper.UserFolderMapper;
 import com.conquer_team.files_system.model.mapper.UserMapper;
-import com.conquer_team.files_system.repository.FolderRepo;
-import com.conquer_team.files_system.repository.NotificationRepo;
-import com.conquer_team.files_system.repository.UserFolderRepo;
-import com.conquer_team.files_system.repository.UserRepo;
+import com.conquer_team.files_system.repository.*;
 import com.conquer_team.files_system.services.NotificationService;
+import com.conquer_team.files_system.services.OutBoxService;
 import com.conquer_team.files_system.services.UserService;
-import com.google.firebase.messaging.FirebaseMessagingException;
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.RequiredArgsConstructor;
-import org.springframework.context.annotation.Lazy;
-import org.springframework.security.core.userdetails.UserDetailsService;
-import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -33,12 +31,13 @@ import java.util.List;
 @RequiredArgsConstructor
 public class UserServiceImpl implements UserService {
     private final UserRepo repo;
+    private final OutBoxRepo outBoxRepo;
     private final UserMapper mapper;
     private final FolderRepo folderRepo;
     private final JwtService jwtService;
     private final UserFolderRepo userFolderRepo;
     private final UserFolderMapper userFolderMapper;
-    private final NotificationService notificationService;
+    private final OutBoxService outBoxService;
 
 
 
@@ -49,6 +48,13 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
+    public UserResponse findById(long id) {
+        User user = repo.findById(id).orElseThrow(()->
+                new IllegalArgumentException("user not found"));
+        return mapper.toDto(user);
+    }
+
+    @Override
     public List<UserResponse> findAll() {
         return mapper.toDtos(repo.findAllByRole(Role.USER));
     }
@@ -56,7 +62,7 @@ public class UserServiceImpl implements UserService {
 
     @Transactional
     @Override
-    public void joinToGroup(JoinToGroupRequest request) {
+    public void joinToGroup(JoinToGroupRequest request)  {
         // get user
         User user = repo.findByEmail(jwtService.getCurrentUserName()).get();
 
@@ -64,25 +70,17 @@ public class UserServiceImpl implements UserService {
         Folder folder = folderRepo.findById(request.getFolderId()).orElseThrow(() ->
                 new IllegalArgumentException("folder not found"));
 
-        // create user_folder
+        // create REQUEST JOIN
         UserFolder userFolder = userFolderMapper.addUserFolder(folder,user,JoinStatus.REQUEST);
 
-        // send notification to admin folder
-        try {
-            notificationService.sendNotificationToUser(
-                    NotificationRequest.builder()
-                            .tittle("New Join Request for Your Group")
-                            .message(user.getFullname() + "has requested to join the group [" + folder.getName() + "]. Review and approve or deny the request.")
-                            .user(folder.getUser())
-                            .build()
-            );
-        }catch (FirebaseMessagingException e){
-            throw new IllegalArgumentException(e.getLocalizedMessage());
-        }
-
-        //ToDo
-//        user.addUserFolders(userFolder);
-//        folder.addUserFolders(userFolder);
+        // create notification for storage in outbox to send it later
+        NotificationRequest notificationRequest = NotificationRequest.builder()
+                .tittle("New Join Request for Your Group")
+                .message(user.getFullname() + "has requested to join the group [" + folder.getName() + "]. Review and approve or deny the request.")
+                .user_id(folder.getUser().getId())
+                .build();
+        // create event to sent notification
+        outBoxService.addEvent(notificationRequest,EventTypes.SENT_NOTIFICATION_TO_USER);
         userFolderRepo.save(userFolder);
     }
 

@@ -1,7 +1,10 @@
 package com.conquer_team.files_system.controller;
 
-import com.conquer_team.files_system.model.dto.requests.*;
 import com.conquer_team.files_system.notation.AdminFolder;
+import com.conquer_team.files_system.model.dto.requests.AddFileRequest;
+import com.conquer_team.files_system.model.dto.requests.CheckInAllFileRequest;
+import com.conquer_team.files_system.model.dto.requests.CheckInFileRequest;
+import com.conquer_team.files_system.model.dto.requests.CheckOutRequest;
 import com.conquer_team.files_system.services.FileService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;

@@ -66,12 +66,14 @@ public class Startup implements CommandLineRunner {
                 LoginRequest.builder()
                         .email("admin@gmail.com")
                         .password("12345678")
+                        .fcmToken("f02gXZqyiLxdSM-R21tfmd:APA91bETMBmujgpgce9FT6rioG09l8O_LWyqVrK_t4s4vEy34T_G0JpCSvW41GmGEnKmzBgY3Ffv0p_-y1FI8NI-YpJkuEgxE-3_cu7t72jHaFfbf6J2Dek")
                         .build()
         );
         LoginResponse userLogin = authService.login(
                 LoginRequest.builder()
                         .email("user@gmail.com")
                         .password("12345678")
+                        .fcmToken("f02gXZqyiLxdSM-R21tfmd:APA91bETMBmujgpgce9FT6rioG09l8O_LWyqVrK_t4s4vEy34T_G0JpCSvW41GmGEnKmzBgY3Ffv0p_-y1FI8NI-YpJkuEgxE-3_cu7t72jHaFfbf6J2Dek")
                         .build()
         );
         printInfo(adminLogin);

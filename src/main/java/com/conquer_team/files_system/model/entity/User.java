@@ -48,6 +48,9 @@ public class User implements UserDetails {
     @OneToMany(mappedBy = "user", cascade = CascadeType.ALL)
     private List<UserFolder> userFolders;
 
+    @OneToMany(mappedBy = "user", cascade = CascadeType.REMOVE)
+    private List<Archive> archives;
+
     @OneToMany(mappedBy = "user",cascade = CascadeType.REMOVE)
     private List<Folder> folders;
 

@@ -1,14 +1,13 @@
 package com.conquer_team.files_system.model.mapper;
 
 
+import com.conquer_team.files_system.model.entity.User;
 import com.conquer_team.files_system.model.dto.requests.RegisterRequest;
 import com.conquer_team.files_system.model.dto.response.LoginResponse;
 import com.conquer_team.files_system.model.dto.response.UserResponse;
-import com.conquer_team.files_system.model.entity.User;
 import com.conquer_team.files_system.model.enums.Role;
 import lombok.RequiredArgsConstructor;
 import org.apache.commons.lang3.RandomStringUtils;
-import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
 import java.util.List;

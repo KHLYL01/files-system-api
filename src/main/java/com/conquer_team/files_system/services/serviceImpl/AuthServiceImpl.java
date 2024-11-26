@@ -26,7 +26,6 @@ public class AuthServiceImpl implements AuthService {
 
     private final UserMapper mapper;
     private final UserRepo repo;
-
     private final AuthenticationManager authenticationManager;
     private final JwtService jwtService;
     private final SendMailService sendMailService;
@@ -36,7 +35,7 @@ public class AuthServiceImpl implements AuthService {
     @Transactional
     @Override
     public UserResponse register(RegisterRequest request) {
-        User user = mapper.toEntity(request,passwordEncoder.encode(request.getPassword()));
+        User user = mapper.toEntity(request, passwordEncoder.encode(request.getPassword()));
         User savedUser = repo.save(user);
         sendMailService.sendMail(savedUser.getEmail(), savedUser.getVerificationCode(), "Verification your account");
         return mapper.toDto(savedUser);
@@ -46,16 +45,15 @@ public class AuthServiceImpl implements AuthService {
     public LoginResponse login(LoginRequest request) {
         authenticationManager.authenticate(new UsernamePasswordAuthenticationToken(request.getEmail(), request.getPassword()));
         User user = repo.findByEmail(request.getEmail()).orElseThrow(
-                        () -> new IllegalArgumentException("user with email " + request.getEmail() + " is not found")
-                );
+                () -> new IllegalArgumentException("user with email " + request.getEmail() + " is not found")
+        );
         user.setFcmToken(request.getFcmToken());
         repo.save(user);
 
         String jwt = jwtService.generateToken(user);
-        String refreshToken = jwtService.generateRefreshToken(new HashMap<>(),user);
+        String refreshToken = jwtService.generateRefreshToken(new HashMap<>(), user);
 
-        return mapper.toJwtDto(user,jwt,refreshToken);
-
+        return mapper.toJwtDto(user, jwt, refreshToken);
     }
 
     @Override
@@ -89,13 +87,13 @@ public class AuthServiceImpl implements AuthService {
 
     @Override
     public void sendCode(CodeRequest dto) {
-            String verificationCode = RandomStringUtils.randomNumeric(6);
+        String verificationCode = RandomStringUtils.randomNumeric(6);
 
-            sendMailService.sendMail(dto.getEmail(), verificationCode, "confirm your account");
-            User user = repo.findByEmail(dto.getEmail()).get();
-            user.setVerificationCode(verificationCode);
+        sendMailService.sendMail(dto.getEmail(), verificationCode, "confirm your account");
+        User user = repo.findByEmail(dto.getEmail()).get();
+        user.setVerificationCode(verificationCode);
 
-            repo.save(user);
+        repo.save(user);
     }
 
     @Override

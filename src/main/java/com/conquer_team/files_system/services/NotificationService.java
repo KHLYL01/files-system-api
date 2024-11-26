@@ -8,7 +8,7 @@ import java.util.List;
 
 public interface NotificationService {
 
-   void sendNotificationToUser(NotificationRequest request) throws  FirebaseMessagingException;
+   void sendNotificationToUser(NotificationRequest request) throws Exception;
 
    void sendNotificationToAllMembers(NotificationRequest request) throws FirebaseMessagingException;
 

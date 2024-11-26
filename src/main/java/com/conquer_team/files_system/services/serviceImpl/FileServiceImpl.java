@@ -1,25 +1,25 @@
 package com.conquer_team.files_system.services.serviceImpl;
 
+import com.conquer_team.files_system.config.JwtService;
 import com.conquer_team.files_system.model.dto.requests.*;
 import com.conquer_team.files_system.model.dto.response.FileResponse;
-import com.conquer_team.files_system.model.entity.Backups;
-import com.conquer_team.files_system.model.entity.File;
-import com.conquer_team.files_system.model.entity.Folder;
-import com.conquer_team.files_system.model.entity.User;
+import com.conquer_team.files_system.model.entity.*;
+import com.conquer_team.files_system.model.enums.EventTypes;
 import com.conquer_team.files_system.model.enums.FileStatus;
 import com.conquer_team.files_system.model.enums.FolderSetting;
 import com.conquer_team.files_system.model.enums.JoinStatus;
 import com.conquer_team.files_system.model.mapper.FileMapper;
-import com.conquer_team.files_system.repository.FileRepo;
-import com.conquer_team.files_system.repository.FolderRepo;
-import com.conquer_team.files_system.repository.UserFolderRepo;
-import com.conquer_team.files_system.repository.UserRepo;
+import com.conquer_team.files_system.repository.*;
 import com.conquer_team.files_system.services.BackupService;
 import com.conquer_team.files_system.services.FileService;
-import com.conquer_team.files_system.services.NotificationService;
-import com.google.firebase.messaging.FirebaseMessagingException;
+import com.github.difflib.DiffUtils;
+import com.github.difflib.patch.AbstractDelta;
+import com.github.difflib.patch.Patch;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.cache.annotation.CacheEvict;
+import org.springframework.cache.annotation.CachePut;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -28,12 +28,11 @@ import org.springframework.web.multipart.MultipartFile;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.nio.file.StandardCopyOption;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.UUID;
+import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 
 @Service
@@ -44,8 +43,10 @@ public class FileServiceImpl implements FileService {
     private final FolderRepo folderRepo;
     private final UserRepo userRepo;
     private final UserFolderRepo userFolderRepo;
-    private final NotificationService notificationService;
     private final BackupService backupService;
+    private final OutBoxServiceImpl outBoxService;
+    private final ArchiveRepo archiveRepo;
+    private final JwtService jwtService;
 
     @Value("${image.directory}")
     private String uploadImageDirectory;
@@ -65,16 +66,44 @@ public class FileServiceImpl implements FileService {
 //        return mapper.toDtos(repo.findAllByUserId(userId));
 //    }
 
+    @Cacheable(value = "files", key = "#userId")
     @Override
     public List<FileResponse> findAllBookedFileByUserId(Long userId) {
         return mapper.toDtos(repo.findAllByBookedUserId(userId));
     }
 
+    @Cacheable(value = "files", key = "#folderId")
     @Override
     public List<FileResponse> findAllByFolderId(Long folderId) {
         return mapper.toDtos(repo.findAllByFolderId(folderId));
     }
 
+    @Cacheable(value = "files", key = "#id")
+    @Override
+    public FileResponse getById(long id) {
+        File file = repo.findById(id).orElseThrow(() ->
+                new IllegalArgumentException("file not found by id:" + id));
+        return mapper.toDto(file);
+    }
+
+    @CacheEvict(value = "files", allEntries = true)
+    @Override
+    public void deleteById(Long id) {
+        repo.findById(id).ifPresentOrElse(file -> {
+            if (file.getStatus() == FileStatus.AVAILABLE) {
+                try {
+                    deleteFile(file.getName());
+                    repo.delete(file);
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+            } else {
+                throw new IllegalArgumentException("File with id " + id + " is not Available");
+            }
+        }, () -> {
+            throw new IllegalArgumentException("File with id " + id + " is not found");
+        });
+    }
 
     @Transactional
     @Override
@@ -102,19 +131,14 @@ public class FileServiceImpl implements FileService {
         File file = mapper.toEntity(filename, user);
         file.setFolder(folder);
 
-        //  send notification to admin folder
         if (!user.getId().equals(folder.getUser().getId())) {
-            try {
-                notificationService.sendNotificationToUser(
-                        NotificationRequest.builder()
-                                .tittle("New File Uploaded in Your Group")
-                                .message(user.getFullname() + " has uploaded a new file to the group [" + folder.getName() + "] . Check it out to review or manage the content.")
-                                .user(folder.getUser())
-                                .build());
-            } catch (FirebaseMessagingException e) {
-                throw new IllegalArgumentException(e.getLocalizedMessage());
-            }
-
+            NotificationRequest notificationRequest = NotificationRequest.builder()
+                    .tittle("New File Uploaded in Your Group")
+                    .message(user.getFullname() + " has uploaded a new file to the group [" + folder.getName() + "] . Check it out to review or manage the content.")
+                    .user_id(folder.getUser().getId())
+                    .build();
+            //create event to sent notification
+            outBoxService.addEvent(notificationRequest, EventTypes.SENT_NOTIFICATION_TO_USER);
         }
 
         File savedFile = repo.save(file);
@@ -131,7 +155,7 @@ public class FileServiceImpl implements FileService {
     @Override
     public FileResponse checkIn(CheckInFileRequest request) {
 
-        Object lock  = fileLocks.computeIfAbsent(request.getFileId(),key -> new Object());
+        Object lock = fileLocks.computeIfAbsent(request.getFileId(), key -> new Object());
 //        lock.lock();
         synchronized (lock) {
             try {
@@ -194,50 +218,25 @@ public class FileServiceImpl implements FileService {
                     throw new IllegalArgumentException("Please upload the same file");
                 } else {
                     fileName = uploadFile(request.getFile(), file.getName());
-                    backupService.addBackup(BackupRequest.builder()
-                            .name(fileName)
-                            .file(file)
-                            .user(file.getBookedUser())
-                            .build());
+                    backupService.addBackup(BackupRequest.builder().name(fileName).file(file).user(file.getBookedUser()).build());
+                    CompareFilesRequest compareRequest = CompareFilesRequest.builder()
+                            .oldFile(file.getName() + "/" + file.getBackups().get(file.getBackups().size() - 2).getName())
+                            .newFile(file.getName() + "/" + fileName).userId(userRepo.findByEmail(jwtService.getCurrentUserName()).get().getId())
+                            .fileId(file.getId()).build();
+                    // create event to compareFiles
+                    outBoxService.addEvent(compareRequest, EventTypes.COMPARE_FILES);
                 }
-
-                try {
-                    notificationService.sendNotificationToAllMembers(
-                            NotificationRequest.builder()
-                                    .tittle("New Update")
-                                    .message("The file" + fileName + "has been modified by " + file.getBookedUser().getFullname())
-                                    .topic("group" + file.getFolder().getId())
-                                    .build()
-                    );
-                } catch (FirebaseMessagingException e) {
-                    throw new IllegalArgumentException(e.getLocalizedMessage());
-                }
-
+//                NotificationRequest notificationRequest = NotificationRequest.builder().tittle("New Update")
+//                        .message("The file" + fileName + "has been modified by " + file.getBookedUser().getFullname())
+//                        .topic("group" + file.getFolder().getId()).build();
+//                //create event to sent Notification
+//                outBoxService.addEvent(notificationRequest, EventTypes.SENT_NOTIFICATION_TO_ALL_MEMBERS);
             }
             file.setBookedUser(null);
             return mapper.toDto(repo.save(file));
         } else {
-            throw new IllegalArgumentException("File with id " + id + " is Available");
+            throw new IllegalArgumentException("File with id " + id + " is UnAvailable");
         }
-
-    }
-
-    @Override
-    public void deleteById(Long id) {
-        repo.findById(id).ifPresentOrElse(file -> {
-            if (file.getStatus() == FileStatus.AVAILABLE) {
-                try {
-                    deleteFile(file.getName());
-                    repo.delete(file);
-                } catch (IOException e) {
-                    e.printStackTrace();
-                }
-            } else {
-                throw new IllegalArgumentException("File with id " + id + " is not Available");
-            }
-        }, () -> {
-            throw new IllegalArgumentException("File with id " + id + " is not found");
-        });
     }
 
 
@@ -265,6 +264,68 @@ public class FileServiceImpl implements FileService {
     }
 
     @Override
+    public void compareFiles(CompareFilesRequest request) {
+        String details = "";
+        try {
+            List<String> oldFileLines = Files.readAllLines(Paths.get(uploadImageDirectory + "/" + request.getOldFile()));
+            List<String> newFileLines = Files.readAllLines(Paths.get(uploadImageDirectory + "/" + request.getNewFile()));
+
+            String newFileContent = String.join("\n", newFileLines);
+            int newFileSizeInBytes = newFileContent.getBytes("UTF-8").length;
+            Patch<String> patch = DiffUtils.diff(oldFileLines, newFileLines);
+            String update_type = "No Any Update";
+            int size = newFileSizeInBytes, revisedEndLine = 0;
+            Set<Integer> changedNewLines = new TreeSet<>();
+            if (patch.getDeltas().isEmpty()) {
+                details = "No differences found between the files.";
+            } else {
+                for (AbstractDelta<String> delta : patch.getDeltas()) {
+                    update_type = delta.getType().toString();
+                    String changeType = delta.getType().toString();
+                    int revisedStartLine = delta.getTarget().getPosition() + 1;
+                    revisedEndLine = revisedStartLine + delta.getTarget().getLines().size() - 1;
+                    for (int i = revisedStartLine; i <= revisedEndLine; i++) {
+                        changedNewLines.add(i);
+                    }
+                    if (changeType.equals("CHANGE") || changeType.equals("INSERT") || changeType.equals("DELETE")) {
+                        for (int i = revisedStartLine; i <= revisedEndLine; i++) {
+
+                            details += "Line: " + i + " | Change Type: " + changeType + "\n";
+
+                            if (changeType.equals("CHANGE") || changeType.equals("INSERT")) {
+                                details += "New content: " + delta.getTarget().getLines().get(i - revisedStartLine) + "\n";
+                            }
+
+                            if (changeType.equals("DELETE")) {
+                                details += "Old content: " + delta.getSource().getLines().get(i - revisedStartLine) + "\n";
+                            }
+                        }
+                    }
+                }
+            }
+
+            File file = repo.findById(request.getFileId()).orElseThrow(() ->
+                    new IllegalArgumentException("file not found  id: " + request.getFileId()));
+            User user = userRepo.findById(request.getUserId()).orElseThrow(() ->
+                    new IllegalArgumentException("user not found id: " + request.getUserId()));
+
+            archiveRepo.save(Archive.builder()
+                    .size(size)
+                    .numOfUpdateLines(changedNewLines.size())
+                    .type(update_type)
+                    .details(details)
+                    .file(file)
+                    .user(user)
+                    .build());
+            System.out.println("Added archive");
+        } catch (Exception e) {
+            throw new IllegalArgumentException(e.getLocalizedMessage());
+        }
+
+    }
+
+
+    @Override
     public void deleteFile(String fileName) throws IOException {
         Path imagePath = Path.of(uploadImageDirectory, fileName);
         if (Files.exists(imagePath)) {
@@ -272,10 +333,4 @@ public class FileServiceImpl implements FileService {
         }
     }
 
-    @Override
-    public FileResponse getById(long id) {
-        File file = repo.findById(id).orElseThrow(() ->
-                new IllegalArgumentException("file not found by id:" + id));
-        return mapper.toDto(file);
-    }
 }

@@ -9,17 +9,24 @@ import com.conquer_team.files_system.model.dto.response.FolderResponse;
 import com.conquer_team.files_system.model.entity.Folder;
 import com.conquer_team.files_system.model.entity.User;
 import com.conquer_team.files_system.model.entity.UserFolder;
+import com.conquer_team.files_system.model.enums.EventTypes;
 import com.conquer_team.files_system.model.enums.FolderSetting;
 import com.conquer_team.files_system.model.enums.JoinStatus;
 import com.conquer_team.files_system.model.mapper.FolderMapper;
+import com.conquer_team.files_system.model.mapper.OutBoxMapper;
 import com.conquer_team.files_system.model.mapper.UserFolderMapper;
 import com.conquer_team.files_system.repository.FolderRepo;
+import com.conquer_team.files_system.repository.OutBoxRepo;
 import com.conquer_team.files_system.repository.UserFolderRepo;
 import com.conquer_team.files_system.repository.UserRepo;
 import com.conquer_team.files_system.services.FolderService;
 import com.conquer_team.files_system.services.NotificationService;
-import com.google.firebase.messaging.FirebaseMessagingException;
+import com.conquer_team.files_system.services.OutBoxService;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.RequiredArgsConstructor;
+import org.springframework.cache.annotation.CacheEvict;
+import org.springframework.cache.annotation.CachePut;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -32,8 +39,8 @@ public class FolderServiceImpl implements FolderService {
     private final FolderMapper mapper;
     private final JwtService jwtService;
     private final UserRepo userRepo;
-    private final NotificationService notificationService;
-
+    private final OutBoxRepo outBoxRepo;
+    private final OutBoxService outBoxService;
     private final UserFolderRepo userFolderRepo;
     private final UserFolderMapper userFolderMapper;
 
@@ -43,6 +50,7 @@ public class FolderServiceImpl implements FolderService {
         return mapper.toDtos(folders);
     }
 
+    @Cacheable("folders")
     @Override
     public List<FolderResponse> getMyFolder() {
         User user = userRepo.findByEmail(jwtService.getCurrentUserName()).orElseThrow(() ->
@@ -57,6 +65,7 @@ public class FolderServiceImpl implements FolderService {
         return mapper.toDtos(repo.findAllByUserIdNotAndSettingsNotContaining(user.getId(), FolderSetting.PRIVATE_FOLDER));
     }
 
+    @Cacheable(value = "folders", key = "#id")
     @Override
     public FolderResponse findById(Long id) {
         return mapper.toDto(repo.findById(id).orElseThrow(
@@ -65,17 +74,6 @@ public class FolderServiceImpl implements FolderService {
         );
     }
 
-//    @Override
-//    public FolderResponse addUserToFolder(AddUserToFolderRequest request) {
-//        Folder folder = repo.findById(request.getFolderId()).orElseThrow(
-//                () -> new IllegalArgumentException("Folder with id " + request.getFolderId() + " is not found")
-//        );
-//
-//        User user = userRepo.findById(request.getUserId()).orElseThrow(
-//                () -> new IllegalArgumentException("User with id " + request.getUserId() + " is not found")
-//        );
-//        return mapper.toDto(repo.save(folder));
-//    }
 
     @Transactional
     @Override
@@ -86,21 +84,19 @@ public class FolderServiceImpl implements FolderService {
         Folder folder = repo.findById(request.getFolderId()).orElseThrow(() ->
                 new IllegalArgumentException("folder by id: " + request.getFolderId() + " not found"));
 
-        try {
-            notificationService.sendNotificationToUser(
-                    NotificationRequest.builder()
-                            .tittle("You've Been Invited to Join a Group")
-                            .message("You have received an invitation to join the group [" + folder.getName() + "] By" + folder.getUser().getFullname() + ". Tap to view the details and accept the invitation")
-                            .user(user)
-                            .build()
-            );
-        }catch (FirebaseMessagingException e){
-            throw new IllegalArgumentException(e.getLocalizedMessage());
-        }
+
+        NotificationRequest notificationRequest = NotificationRequest.builder()
+                .tittle("You've Been Invited to Join a Group")
+                .message("You have received an invitation to join the group [" + folder.getName() + "] By" + folder.getUser().getFullname() + ". Tap to view the details and accept the invitation")
+                .user_id(user.getId())
+                .build();
+
+        outBoxService.addEvent(notificationRequest, EventTypes.SENT_NOTIFICATION_TO_USER);
 
         UserFolder userFolder = userFolderMapper.addUserFolder(folder, user, JoinStatus.INVITATION);
         userFolderRepo.save(userFolder);
     }
+
 
 
     @Transactional
@@ -115,6 +111,7 @@ public class FolderServiceImpl implements FolderService {
         return mapper.toDto(repo.save(folder));
     }
 
+    @CachePut(value = "products",key = "#id")
     @Override
     public FolderResponse update(UpdateFolderRequest request, Long id) {
         Folder folder = repo.findById(id).orElseThrow(() ->
@@ -125,6 +122,7 @@ public class FolderServiceImpl implements FolderService {
         return mapper.toDto(repo.save(folder));
     }
 
+    @CacheEvict(value = "folders", key = "#id")
     @Override
     public void deleteById(Long id) {
         repo.findById(id).ifPresentOrElse(repo::delete, () -> {

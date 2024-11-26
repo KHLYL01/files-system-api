@@ -11,27 +11,76 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.core.io.ClassPathResource;
 import org.springframework.stereotype.Component;
 
+import java.io.FileInputStream;
 import java.io.IOException;
+import java.io.InputStream;
 
 @Configuration
 public class FireBaseConfiguration {
 
+    private static final String FIREBASE_CONFIG_PATH = "filemanager-446f0-firebase-adminsdk-omy7t-34b300117f.json";
+
+
+//    @Bean
+//    		try {
+////			FirebaseOptions file = FirebaseOptions.builder().setCredentials(
+////					GoogleCredentials.fromStream(this.getClass().getClassLoader().getResourceAsStream("fir-fcm-v1-firebase.json")))
+////					.build();
+////
+////			System.out.println("Check File : "+file);
+//
+//        FileInputStream serviceAccount = new FileInputStream("src/main/resources/fir-fcm-v1-firebase.json");
+//        //System.out.println("Service Acc File: "+serviceAccount);
+//
+//        FirebaseOptions options = new FirebaseOptions.Builder()
+//                .setCredentials(GoogleCredentials.fromStream(serviceAccount)).build();
+//        //System.out.println("Got IT: "+options);
+//        if(FirebaseApp.getApps().isEmpty()) {
+//            FirebaseApp.initializeApp(options);
+//            System.out.println("Firebase App initialized successfully!");
+//        }else {
+//            System.out.println("Else :Firebase App already initialized.");
+//        }
+//
+//    } catch (Exception e) {
+//        e.printStackTrace();
+//    }
+
+    @Bean
+    void firebaseMessaging() throws IOException {
+        try {
+            GoogleCredentials googleCredentials = GoogleCredentials.fromStream(
+                    new ClassPathResource(FIREBASE_CONFIG_PATH)
+                            .getInputStream()
+            );
+            FirebaseOptions firebaseOptions = FirebaseOptions.builder()
+                    .setCredentials(googleCredentials)
+                    .build();
+            if(FirebaseApp.getApps().isEmpty()) {
+                FirebaseApp.initializeApp(firebaseOptions);
+                System.out.println("Firebase App initialized successfully!");
+            }else{
+                System.out.println("Else :Firebase App already initialized.");
+            }
+//            FirebaseApp app = FirebaseApp.initializeApp(firebaseOptions);
+//            return FirebaseMessaging.getInstance(app);
+        }catch(Exception e){
+            e.getStackTrace();
+        }
+    }
+
+
+//    @Bean
+//    public GoogleCredentials googleCredentials() throws IOException {
+//        try (InputStream inputStream = getClass().getClassLoader().getResourceAsStream(FIREBASE_CONFIG_PATH)) {
+//            if (inputStream == null) {
+//                throw new IllegalArgumentException("Firebase config file not found: " + FIREBASE_CONFIG_PATH);
+//            }
+//            return GoogleCredentials.fromStream(inputStream).createScoped("https://www.googleapis.com/auth/firebase.messaging");
+//        }
+//    }
+
 //    @Value("${app.firebase-configuration-file}")
 //    private String firebaseConfigPath;
 //
-//    @PostConstruct
-//    FirebaseMessaging firebaseMessaging() throws IOException {
-//        GoogleCredentials googleCredentials = GoogleCredentials.fromStream(
-//                new ClassPathResource(firebaseConfigPath)
-//                        .getInputStream()
-//        );
-//
-//        FirebaseOptions firebaseOptions = FirebaseOptions.builder()
-//                .setCredentials(googleCredentials)
-//                .build();
-//
-//        FirebaseApp app = FirebaseApp.initializeApp(firebaseOptions, "file-system");
-//
-//        return FirebaseMessaging.getInstance(app);
-//    }
 }

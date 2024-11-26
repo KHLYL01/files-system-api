@@ -1,10 +1,10 @@
 package com.conquer_team.files_system.model.mapper;
 
+import com.conquer_team.files_system.model.entity.Folder;
+import com.conquer_team.files_system.model.entity.User;
 import com.conquer_team.files_system.model.dto.response.GetInvitationsResponse;
 import com.conquer_team.files_system.model.dto.response.GetRequestsJoiningResponse;
 import com.conquer_team.files_system.model.dto.response.UserFolderResponse;
-import com.conquer_team.files_system.model.entity.Folder;
-import com.conquer_team.files_system.model.entity.User;
 import com.conquer_team.files_system.model.entity.UserFolder;
 import com.conquer_team.files_system.model.enums.JoinStatus;
 import lombok.RequiredArgsConstructor;
