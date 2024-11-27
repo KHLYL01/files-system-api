@@ -1,6 +1,7 @@
 package com.conquer_team.files_system.services;
 
 import com.conquer_team.files_system.model.dto.requests.JoinToGroupRequest;
+import com.conquer_team.files_system.model.dto.requests.LeaveFolderRequest;
 import com.conquer_team.files_system.model.dto.response.GetInvitationsResponse;
 import com.conquer_team.files_system.model.dto.response.GetRequestsJoiningResponse;
 import com.conquer_team.files_system.model.dto.response.UserResponse;
@@ -26,4 +27,6 @@ public interface UserService {
     List<UserResponse> getAllOutFolder(long id);
 
     UserResponse findById(long id);
+
+    void leaveFolder(LeaveFolderRequest request);
 }

@@ -1,5 +1,6 @@
 package com.conquer_team.files_system.controller;
 
+import com.conquer_team.files_system.model.dto.requests.LeaveFolderRequest;
 import com.conquer_team.files_system.services.UserService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
@@ -27,6 +28,12 @@ public class UserController {
     @GetMapping("/{id}")
     public ResponseEntity<?> findById(@PathVariable long id){
         return ResponseEntity.ok(userService.findById(id));
+    }
+
+    @DeleteMapping("/leave")
+    public  ResponseEntity<?> leaveFolder(LeaveFolderRequest request){
+        userService.leaveFolder(request);
+        return ResponseEntity.noContent().build();
     }
 
 }

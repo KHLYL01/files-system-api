@@ -18,7 +18,6 @@ import com.github.difflib.patch.Patch;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.cache.annotation.CacheEvict;
-import org.springframework.cache.annotation.CachePut;
 import org.springframework.cache.annotation.Cacheable;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.stereotype.Service;
@@ -133,9 +132,9 @@ public class FileServiceImpl implements FileService {
 
         if (!user.getId().equals(folder.getUser().getId())) {
             NotificationRequest notificationRequest = NotificationRequest.builder()
-                    .tittle("New File Uploaded in Your Group")
+                    .title("New File Uploaded in Your Group")
                     .message(user.getFullname() + " has uploaded a new file to the group [" + folder.getName() + "] . Check it out to review or manage the content.")
-                    .user_id(folder.getUser().getId())
+                    .userId(folder.getUser().getId())
                     .build();
             //create event to sent notification
             outBoxService.addEvent(notificationRequest, EventTypes.SENT_NOTIFICATION_TO_USER);

@@ -14,4 +14,6 @@ public interface FileRepo extends JpaRepository<File,Long> {
 
     List<File> findAllByBookedUserId(Long userId);
 
+    List<File> findAllByBookedUserIdAndFolderId(Long userId,Long folderId);
+
 }

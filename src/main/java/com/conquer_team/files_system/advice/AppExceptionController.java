@@ -1,5 +1,6 @@
 package com.conquer_team.files_system.advice;
 
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.AccessDeniedException;
@@ -14,6 +15,7 @@ import java.util.List;
 import java.util.NoSuchElementException;
 
 @ControllerAdvice
+@Slf4j
 public class AppExceptionController {
 
     @ExceptionHandler(value = {MethodArgumentNotValidException.class})
@@ -28,6 +30,8 @@ public class AppExceptionController {
                 .message(errors.toString())
                 .build();
 
+        log.error("MethodArgumentNotValidException {}",errors);
+
         return new ResponseEntity<>(exceptionResponse, HttpStatus.BAD_REQUEST);
     }
 
@@ -38,6 +42,8 @@ public class AppExceptionController {
                 .statusCode(HttpStatus.BAD_REQUEST.value())
                 .message(ex.getLocalizedMessage())
                 .build();
+
+        log.error("RuntimeException",ex);
 
         return new ResponseEntity<>(exceptionResponse, HttpStatus.BAD_REQUEST);
     }
@@ -63,6 +69,8 @@ public class AppExceptionController {
                 .message(ex.getLocalizedMessage())
                 .build();
 
+        log.error("NoSuchElementException",ex);
+
         return new ResponseEntity<>(exceptionResponse, HttpStatus.BAD_REQUEST);
     }
 
@@ -75,6 +83,8 @@ public class AppExceptionController {
                 .message(ex.getLocalizedMessage())
                 .build();
 
+        log.error("IllegalArgumentException",ex);
+
         return new ResponseEntity<>(exceptionResponse, HttpStatus.BAD_REQUEST);
     }
 
@@ -86,6 +96,8 @@ public class AppExceptionController {
                 .statusCode(HttpStatus.BAD_REQUEST.value())
                 .message(ex.getLocalizedMessage())
                 .build();
+
+        log.error("AccessDeniedException",ex);
 
         return new ResponseEntity<>(exceptionResponse, HttpStatus.BAD_REQUEST);
     }

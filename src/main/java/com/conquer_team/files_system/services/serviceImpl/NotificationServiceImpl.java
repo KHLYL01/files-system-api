@@ -38,11 +38,11 @@ public class NotificationServiceImpl implements NotificationService {
     @Transactional
     @Override
     public void sendNotificationToUser(NotificationRequest request) throws FirebaseMessagingException {
-        User user = userRepo.findById(request.getUser_id()).get();
+        User user = userRepo.findById(request.getUserId()).get();
 
         //create notification
         Notification notification = Notification.builder()
-                .setTitle(request.getTittle())
+                .setTitle(request.getTitle())
                 .setBody(request.getMessage())
                 .build();
 
@@ -61,12 +61,10 @@ public class NotificationServiceImpl implements NotificationService {
     }
 
     public Message generateMessageUsingFcmToken(Notification notification, String token) {
-
-        Message message = Message.builder()
+        return Message.builder()
                 .setToken(token)
                 .setNotification(notification)
                 .build();
-        return message;
     }
 
 
@@ -75,7 +73,7 @@ public class NotificationServiceImpl implements NotificationService {
 
         //create notification
         Notification notification = Notification.builder()
-                .setTitle(request.getTittle())
+                .setTitle(request.getTitle())
                 .setBody(request.getMessage())
                 .build();
 
@@ -105,11 +103,10 @@ public class NotificationServiceImpl implements NotificationService {
     }
 
     public Message generateMessageUsingTopic(Notification notification, String topic) {
-        Message message = Message.builder()
+        return Message.builder()
                 .setNotification(notification)
                 .setTopic("f02gXZqyiLxdSM-R21tfmd:APA91bETMBmujgpgce9FT6rioG09l8O_LWyqVrK_t4s4vEy34T_G0JpCSvW41GmGEnKmzBgY3Ffv0p_-y1FI8NI-YpJkuEgxE-3_cu7t72jHaFfbf6J2Dek")
                 .build();
-        return message;
     }
 
     @Override

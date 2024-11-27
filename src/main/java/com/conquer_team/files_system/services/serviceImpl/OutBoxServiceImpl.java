@@ -6,10 +6,12 @@ import com.conquer_team.files_system.repository.OutBoxRepo;
 import com.conquer_team.files_system.services.OutBoxService;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
 @Service
 @RequiredArgsConstructor
+@Slf4j
 public class OutBoxServiceImpl implements OutBoxService {
     private final OutBoxRepo repo;
     private final ObjectMapper objectMapper;
@@ -20,7 +22,9 @@ public class OutBoxServiceImpl implements OutBoxService {
         try {
             String json = objectMapper.writeValueAsString(obj);
             repo.save(mapper.toEntity(json, type));
+            log.info("Add New Event to OutBox Job {}",type);
         } catch (Exception e) {
+            log.error("Error when add new Event",e);
             throw new IllegalArgumentException(e.getLocalizedMessage());
         }
     }

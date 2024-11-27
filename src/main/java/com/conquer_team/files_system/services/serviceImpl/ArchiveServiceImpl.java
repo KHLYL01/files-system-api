@@ -5,6 +5,7 @@ import com.conquer_team.files_system.repository.ArchiveRepo;
 import com.conquer_team.files_system.services.ArchiveService;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.supercsv.io.CsvBeanWriter;
 import org.supercsv.io.ICsvBeanWriter;
@@ -18,6 +19,7 @@ import java.util.List;
 
 @Service
 @RequiredArgsConstructor
+@Slf4j
 public class ArchiveServiceImpl implements ArchiveService {
     private final ArchiveRepo repo;
 
@@ -43,8 +45,13 @@ public class ArchiveServiceImpl implements ArchiveService {
         this.exportToCSV(response, archives);
     }
 
+    @Override
+    public void reportForAll(HttpServletResponse response) throws IOException {
+        List<Archive> archives = repo.findAll();
+        this.exportToCSV(response,archives);
+    }
 
-    public void exportToCSV(HttpServletResponse response, List<Archive> archives) throws IOException {
+    private void exportToCSV(HttpServletResponse response, List<Archive> archives) throws IOException {
         response.setContentType("text/csv");
         DateFormat dateFormatter = new SimpleDateFormat("yyyy-MM-dd_HH-mm-ss");
         String currentDateTime = dateFormatter.format(new Date());
@@ -65,11 +72,7 @@ public class ArchiveServiceImpl implements ArchiveService {
         }
 
         csvWriter.close();
-    }
 
-    @Override
-    public void reportForAll(HttpServletResponse response) throws IOException {
-        List<Archive> archives = repo.findAll();
-        this.exportToCSV(response,archives);
+        log.info("Export To CSV Successfully");
     }
 }

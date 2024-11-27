@@ -13,16 +13,13 @@ import com.conquer_team.files_system.model.enums.EventTypes;
 import com.conquer_team.files_system.model.enums.FolderSetting;
 import com.conquer_team.files_system.model.enums.JoinStatus;
 import com.conquer_team.files_system.model.mapper.FolderMapper;
-import com.conquer_team.files_system.model.mapper.OutBoxMapper;
 import com.conquer_team.files_system.model.mapper.UserFolderMapper;
 import com.conquer_team.files_system.repository.FolderRepo;
 import com.conquer_team.files_system.repository.OutBoxRepo;
 import com.conquer_team.files_system.repository.UserFolderRepo;
 import com.conquer_team.files_system.repository.UserRepo;
 import com.conquer_team.files_system.services.FolderService;
-import com.conquer_team.files_system.services.NotificationService;
 import com.conquer_team.files_system.services.OutBoxService;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.RequiredArgsConstructor;
 import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.cache.annotation.CachePut;
@@ -86,9 +83,9 @@ public class FolderServiceImpl implements FolderService {
 
 
         NotificationRequest notificationRequest = NotificationRequest.builder()
-                .tittle("You've Been Invited to Join a Group")
+                .title("You've Been Invited to Join a Group")
                 .message("You have received an invitation to join the group [" + folder.getName() + "] By" + folder.getUser().getFullname() + ". Tap to view the details and accept the invitation")
-                .user_id(user.getId())
+                .userId(user.getId())
                 .build();
 
         outBoxService.addEvent(notificationRequest, EventTypes.SENT_NOTIFICATION_TO_USER);

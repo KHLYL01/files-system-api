@@ -2,30 +2,30 @@ package com.conquer_team.files_system.services.serviceImpl;
 
 import com.conquer_team.files_system.config.JwtService;
 import com.conquer_team.files_system.model.dto.requests.JoinToGroupRequest;
+import com.conquer_team.files_system.model.dto.requests.LeaveFolderRequest;
 import com.conquer_team.files_system.model.dto.requests.NotificationRequest;
 import com.conquer_team.files_system.model.dto.response.GetInvitationsResponse;
 import com.conquer_team.files_system.model.dto.response.GetRequestsJoiningResponse;
 import com.conquer_team.files_system.model.dto.response.UserResponse;
+import com.conquer_team.files_system.model.entity.File;
 import com.conquer_team.files_system.model.entity.Folder;
 import com.conquer_team.files_system.model.entity.User;
 import com.conquer_team.files_system.model.entity.UserFolder;
 import com.conquer_team.files_system.model.enums.EventTypes;
+import com.conquer_team.files_system.model.enums.FileStatus;
 import com.conquer_team.files_system.model.enums.JoinStatus;
 import com.conquer_team.files_system.model.enums.Role;
-import com.conquer_team.files_system.model.mapper.OutBoxMapper;
 import com.conquer_team.files_system.model.mapper.UserFolderMapper;
 import com.conquer_team.files_system.model.mapper.UserMapper;
 import com.conquer_team.files_system.repository.*;
-import com.conquer_team.files_system.services.NotificationService;
 import com.conquer_team.files_system.services.OutBoxService;
 import com.conquer_team.files_system.services.UserService;
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
+import java.util.Objects;
 
 @Service
 @RequiredArgsConstructor
@@ -39,6 +39,7 @@ public class UserServiceImpl implements UserService {
     private final UserFolderMapper userFolderMapper;
     private final OutBoxService outBoxService;
 
+    private final FileRepo fileRepo;
 
 
     @Override
@@ -49,10 +50,11 @@ public class UserServiceImpl implements UserService {
 
     @Override
     public UserResponse findById(long id) {
-        User user = repo.findById(id).orElseThrow(()->
+        User user = repo.findById(id).orElseThrow(() ->
                 new IllegalArgumentException("user not found"));
         return mapper.toDto(user);
     }
+
 
     @Override
     public List<UserResponse> findAll() {
@@ -62,7 +64,7 @@ public class UserServiceImpl implements UserService {
 
     @Transactional
     @Override
-    public void joinToGroup(JoinToGroupRequest request)  {
+    public void joinToGroup(JoinToGroupRequest request) {
         // get user
         User user = repo.findByEmail(jwtService.getCurrentUserName()).get();
 
@@ -71,23 +73,23 @@ public class UserServiceImpl implements UserService {
                 new IllegalArgumentException("folder not found"));
 
         // create REQUEST JOIN
-        UserFolder userFolder = userFolderMapper.addUserFolder(folder,user,JoinStatus.REQUEST);
+        UserFolder userFolder = userFolderMapper.addUserFolder(folder, user, JoinStatus.REQUEST);
 
         // create notification for storage in outbox to send it later
         NotificationRequest notificationRequest = NotificationRequest.builder()
-                .tittle("New Join Request for Your Group")
+                .title("New Join Request for Your Group")
                 .message(user.getFullname() + "has requested to join the group [" + folder.getName() + "]. Review and approve or deny the request.")
-                .user_id(folder.getUser().getId())
+                .userId(folder.getUser().getId())
                 .build();
         // create event to sent notification
-        outBoxService.addEvent(notificationRequest,EventTypes.SENT_NOTIFICATION_TO_USER);
+        outBoxService.addEvent(notificationRequest, EventTypes.SENT_NOTIFICATION_TO_USER);
         userFolderRepo.save(userFolder);
     }
 
     @Override
     public List<GetInvitationsResponse> getInvitations() {
         User user = repo.findByEmail(jwtService.getCurrentUserName()).get();
-        List<UserFolder> userFolders = userFolderRepo.findByUserIdAndStatus(user.getId(),JoinStatus.INVITATION);
+        List<UserFolder> userFolders = userFolderRepo.findByUserIdAndStatus(user.getId(), JoinStatus.INVITATION);
         return userFolderMapper.toDtosInv(userFolders);
     }
 
@@ -111,5 +113,56 @@ public class UserServiceImpl implements UserService {
         UserFolder userFolder = userFolderRepo.findById(id).orElseThrow(() ->
                 new IllegalArgumentException("not found"));
         userFolderRepo.delete(userFolder);
+    }
+
+
+    @Override
+    public void leaveFolder(LeaveFolderRequest request) {
+
+        User user = repo.findById(request.getUserId()).orElseThrow(() ->
+                new IllegalArgumentException("user with Id " + request.getUserId() + " not found")
+        );
+
+        Folder folder = folderRepo.findById(request.getFolderId()).orElseThrow(() ->
+                new IllegalArgumentException("folder with Id " + request.getFolderId() + " not found")
+        );
+
+        if (Objects.equals(user.getId(), folder.getUser().getId())) {
+            throw new IllegalArgumentException("user cannot leave, because he is the owner of this folder");
+        }
+
+        // check out all file for this user
+        List<File> bookedFiles = fileRepo.findAllByBookedUserIdAndFolderId(request.getUserId(), request.getFolderId());
+
+        bookedFiles.forEach(
+                file -> {
+                    file.setBookedUser(null);
+                    file.setStatus(FileStatus.AVAILABLE);
+                    // save after check out
+                    fileRepo.save(file);
+                }
+        );
+
+        // create notification for storage in outbox to send it later
+        NotificationRequest notificationRequest = request.isLeave()
+                ?
+                NotificationRequest.builder()
+                        .title("Leave Group")
+                        .message(user.getFullname() + "has leave group [" + folder.getName() + "].")
+                        .userId(folder.getUser().getId())
+                        .build()
+                :
+                NotificationRequest.builder()
+                        .title("Removed From Group")
+                        .message("You have been removed from group [" + folder.getName() + "].")
+                        .userId(user.getId())
+                        .build();
+
+        // create event to sent notification
+        outBoxService.addEvent(notificationRequest, EventTypes.SENT_NOTIFICATION_TO_USER);
+
+        UserFolder userFolder = userFolderRepo.findByUserIdAndFolderId(request.getUserId(), request.getFolderId());
+        userFolderRepo.delete(userFolder);
+
     }
 }

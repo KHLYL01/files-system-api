@@ -24,7 +24,7 @@ public class OutBoxServiceBackground {
     private final FileService fileService;
     private final ObjectMapper objectMapper;
 
-    @Scheduled(fixedRate = 1000, initialDelay = 5000)
+    @Scheduled(fixedRate = 1_000, initialDelay = 5_000)
     public void getAllEvents() {
         List<OutBox> outBoxes = outBoxRepo.findAllByStatusIsNot(Sort.by(Sort.Order.asc("id")), MessageStatus.SENT);
         for (OutBox box : outBoxes) {

@@ -17,9 +17,9 @@ public class NotificationMapper {
 
     private final UserRepo userRepo;
     public Notifications toEntity(NotificationRequest request){
-        User user = userRepo.findById(request.getUser_id()).get();
+        User user = userRepo.findById(request.getUserId()).get();
         return Notifications.builder()
-                .tittle(request.getTittle())
+                .tittle(request.getTitle())
                 .message(request.getMessage())
                 .user(user)
                 .build();

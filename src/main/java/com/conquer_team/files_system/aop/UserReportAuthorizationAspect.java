@@ -23,7 +23,6 @@ public class UserReportAuthorizationAspect {
     // (admin folder) and (Super Admin) only have access
     @Before(value = "execution(* com.conquer_team.files_system.controller.ArchiveController.generateReportToUser(..))")
     public void check(JoinPoint joinPoint) {
-        System.out.println("Ameen");
         Object[] args = joinPoint.getArgs();
         long userId = (long) args[1];
         long folderId = (long) args[2];
@@ -37,7 +36,7 @@ public class UserReportAuthorizationAspect {
         User whoSendRequest = userRepo.findByEmail(jwtService.getCurrentUserName()).orElseThrow(() ->
                 new IllegalArgumentException("user not found"));
 
-        if (!whoSendRequest.getRole().equals(Role.ADMIN) && !(whoSendRequest.getId() == folder.getUser().getId())) {
+        if (!whoSendRequest.getRole().equals(Role.ADMIN) && !(whoSendRequest.getId().equals(folder.getUser().getId()))) {
             throw new IllegalArgumentException("You do not have the necessary permissions to access this resource.");
         }
     }
