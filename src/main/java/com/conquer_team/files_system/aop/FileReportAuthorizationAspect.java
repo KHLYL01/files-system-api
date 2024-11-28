@@ -34,8 +34,8 @@ public class FileReportAuthorizationAspect {
         long fileId = (long) args[1];
         long folderId = (long) args[2];
 
-        File file = fileRepo.findById(folderId).orElseThrow(() ->
-                new IllegalArgumentException("file not found :" + folderId));
+        File file = fileRepo.findById(fileId).orElseThrow(() ->
+                new IllegalArgumentException("file not found :" + fileId));
 
         Folder folder = folderRepo.findById(folderId).orElseThrow(() ->
                 new IllegalArgumentException("folder not found"));
@@ -44,7 +44,7 @@ public class FileReportAuthorizationAspect {
                 new IllegalArgumentException("user not found"));
 
         if (!whoSendRequest.getRole().equals(Role.ADMIN) &&
-                !(whoSendRequest.getId() == folder.getUser().getId()) &&
+                !(whoSendRequest.getId().equals(folder.getUser().getId())) &&
                 !(userFolderRepo.existsByUserIdAndFolderIdAndStatus(whoSendRequest.getId(), folderId, JoinStatus.ACCEPTED))) {
             throw new IllegalArgumentException("You do not have the necessary permissions to access this resource.");
         }

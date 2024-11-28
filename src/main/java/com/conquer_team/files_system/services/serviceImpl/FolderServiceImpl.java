@@ -41,13 +41,14 @@ public class FolderServiceImpl implements FolderService {
     private final UserFolderRepo userFolderRepo;
     private final UserFolderMapper userFolderMapper;
 
+    @Cacheable("folders")
     @Override
     public List<FolderResponse> findAll() {
         List<Folder> folders = repo.findAll();
         return mapper.toDtos(folders);
     }
 
-    @Cacheable("folders")
+//    @Cacheable("folders")
     @Override
     public List<FolderResponse> getMyFolder() {
         User user = userRepo.findByEmail(jwtService.getCurrentUserName()).orElseThrow(() ->
@@ -95,7 +96,6 @@ public class FolderServiceImpl implements FolderService {
     }
 
 
-
     @Transactional
     @Override
     public FolderResponse save(AddFolderRequest request) {
@@ -108,7 +108,7 @@ public class FolderServiceImpl implements FolderService {
         return mapper.toDto(repo.save(folder));
     }
 
-    @CachePut(value = "products",key = "#id")
+    @CachePut(value = "products", key = "#id")
     @Override
     public FolderResponse update(UpdateFolderRequest request, Long id) {
         Folder folder = repo.findById(id).orElseThrow(() ->

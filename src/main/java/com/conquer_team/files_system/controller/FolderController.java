@@ -3,25 +3,16 @@ package com.conquer_team.files_system.controller;
 import com.conquer_team.files_system.model.dto.requests.AddFolderRequest;
 import com.conquer_team.files_system.model.dto.requests.UpdateFolderRequest;
 import com.conquer_team.files_system.model.dto.response.FolderResponse;
-import com.conquer_team.files_system.model.dto.response.UserResponse;
 import com.conquer_team.files_system.services.FolderService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
-import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import lombok.RequiredArgsConstructor;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.scheduling.annotation.Async;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
-
-import java.util.List;
-import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.Future;
 
 @RestController
 @RequiredArgsConstructor
