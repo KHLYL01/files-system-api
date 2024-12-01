@@ -10,6 +10,6 @@ import lombok.Data;
 public class NotificationRequest  {
     private String title;
     private String message;
-    private String topic;
+    private Long folderId;
     private Long userId;
 }

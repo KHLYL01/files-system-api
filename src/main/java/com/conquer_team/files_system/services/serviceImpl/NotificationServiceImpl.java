@@ -68,46 +68,46 @@ public class NotificationServiceImpl implements NotificationService {
     }
 
 
-    @Override
-    public void sendNotificationToAllMembers(NotificationRequest request) throws FirebaseMessagingException {
+//    @Override
+//    public void sendNotificationToAllMembers(NotificationRequest request) throws FirebaseMessagingException {
+//
+//        //create notification
+//        Notification notification = Notification.builder()
+//                .setTitle(request.getTitle())
+//                .setBody(request.getMessage())
+//                .build();
+//
+//
+//        //create message
+//        Message message = generateMessageUsingTopic(notification, request.getTopic());
+//
+//        //send notification
+//        String response = FirebaseMessaging.getInstance().send(message);
+//
+//        System.out.println(response);
+//
+//        // save notification
+//        Notifications notificat = repo.save(mapper.toEntity(request));
+//        saveNotificationToAllMembers(request.getTopic().substring(5), notificat);
+//    }
+//
+//    private void saveNotificationToAllMembers(String folderId, Notifications notificat) {
+//        //get all members in folder then save notification for every one
+//        List<UserFolder> users = userFolderRepo.findByFolderIdAndStatus(Integer.getInteger(folderId), JoinStatus.ACCEPTED);
+//        System.out.println("//////////////////////////////////////////");
+//        System.out.println("number user in this folder");
+//        System.out.println("//////////////////////////////////////////");
+//        for (UserFolder user : users) {
+//            user.getUser().AddNotification(notificat);
+//        }
+//    }
 
-        //create notification
-        Notification notification = Notification.builder()
-                .setTitle(request.getTitle())
-                .setBody(request.getMessage())
-                .build();
-
-
-        //create message
-        Message message = generateMessageUsingTopic(notification, request.getTopic());
-
-        //send notification
-        String response = FirebaseMessaging.getInstance().send(message);
-
-        System.out.println(response);
-
-        // save notification
-        Notifications notificat = repo.save(mapper.toEntity(request));
-        saveNotificationToAllMembers(request.getTopic().substring(5), notificat);
-    }
-
-    private void saveNotificationToAllMembers(String folderId, Notifications notificat) {
-        //get all members in folder then save notification for every one
-        List<UserFolder> users = userFolderRepo.findByFolderIdAndStatus(Integer.getInteger(folderId), JoinStatus.ACCEPTED);
-        System.out.println("//////////////////////////////////////////");
-        System.out.println("number user in this folder");
-        System.out.println("//////////////////////////////////////////");
-        for (UserFolder user : users) {
-            user.getUser().AddNotification(notificat);
-        }
-    }
-
-    public Message generateMessageUsingTopic(Notification notification, String topic) {
-        return Message.builder()
-                .setNotification(notification)
-                .setTopic("f02gXZqyiLxdSM-R21tfmd:APA91bETMBmujgpgce9FT6rioG09l8O_LWyqVrK_t4s4vEy34T_G0JpCSvW41GmGEnKmzBgY3Ffv0p_-y1FI8NI-YpJkuEgxE-3_cu7t72jHaFfbf6J2Dek")
-                .build();
-    }
+//    public Message generateMessageUsingTopic(Notification notification, String topic) {
+//        return Message.builder()
+//                .setNotification(notification)
+//                .setTopic("f02gXZqyiLxdSM-R21tfmd:APA91bETMBmujgpgce9FT6rioG09l8O_LWyqVrK_t4s4vEy34T_G0JpCSvW41GmGEnKmzBgY3Ffv0p_-y1FI8NI-YpJkuEgxE-3_cu7t72jHaFfbf6J2Dek")
+//                .build();
+//    }
 
     @Override
     public List<NotificationResponse> getAllNotificationsByUserId() {

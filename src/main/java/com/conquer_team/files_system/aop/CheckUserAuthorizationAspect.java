@@ -59,11 +59,11 @@ public class CheckUserAuthorizationAspect {
     public void checkUser(JoinPoint joinPoint) {
         Object[] args = joinPoint.getArgs();
         Long userFolderId = (long) args[0];
-        System.out.println(userFolderId);
+       // System.out.println(userFolderId);
 
         User user = userRepo.findByEmail(jwtService.getCurrentUserName()).orElseThrow(() ->
                 new IllegalArgumentException("user not found"));
-        System.out.print(user.getId());
+        //System.out.print(user.getId());
         UserFolder userFolder = userFolderRepo.findById(userFolderId).orElseThrow(() ->
                 new IllegalArgumentException("user not found"));
 

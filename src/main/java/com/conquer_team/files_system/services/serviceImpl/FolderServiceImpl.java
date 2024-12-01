@@ -82,6 +82,13 @@ public class FolderServiceImpl implements FolderService {
         Folder folder = repo.findById(request.getFolderId()).orElseThrow(() ->
                 new IllegalArgumentException("folder by id: " + request.getFolderId() + " not found"));
 
+        if(userFolderRepo.existsByUserIdAndFolderIdAndStatus(user.getId(),folder.getId(),JoinStatus.INVITATION)){
+            throw new IllegalArgumentException("User is already invited");
+        }
+
+        if(userFolderRepo.existsByUserIdAndFolderIdAndStatus(user.getId(),folder.getId(),JoinStatus.ACCEPTED)){
+            throw new IllegalArgumentException("User have already in group.");
+        }
 
         NotificationRequest notificationRequest = NotificationRequest.builder()
                 .title("You've Been Invited to Join a Group")

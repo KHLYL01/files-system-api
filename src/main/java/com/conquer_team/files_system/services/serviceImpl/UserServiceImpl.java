@@ -72,6 +72,14 @@ public class UserServiceImpl implements UserService {
         Folder folder = folderRepo.findById(request.getFolderId()).orElseThrow(() ->
                 new IllegalArgumentException("folder not found"));
 
+        if(userFolderRepo.existsByUserIdAndFolderIdAndStatus(user.getId(),folder.getId(),JoinStatus.REQUEST)){
+           throw new IllegalArgumentException("You have already requested to join.");
+        }
+
+        if(userFolderRepo.existsByUserIdAndFolderIdAndStatus(user.getId(),folder.getId(),JoinStatus.ACCEPTED)){
+            throw new IllegalArgumentException("You have already in group.");
+        }
+
         // create REQUEST JOIN
         UserFolder userFolder = userFolderMapper.addUserFolder(folder, user, JoinStatus.REQUEST);
 
@@ -99,20 +107,39 @@ public class UserServiceImpl implements UserService {
         return userFolderMapper.toDtosJoin(userFolders);
     }
 
+
     @Transactional
     @Override
     public void acceptInvitationOrJoinRequest(long id) {
-        UserFolder userFolder = userFolderRepo.findById(id).orElseThrow(() ->
+       UserFolder userFolder = userFolderRepo.findById(id).orElseThrow(() ->
                 new IllegalArgumentException("not found"));
+        System.out.println(userFolder.getFolder().getName());
         userFolder.setStatus(JoinStatus.ACCEPTED);
         userFolderRepo.save(userFolder);
+        this.checkRepeat(userFolder);
     }
 
+    @Transactional
     @Override
     public void rejectInvitationOrJoinRequest(long id) {
         UserFolder userFolder = userFolderRepo.findById(id).orElseThrow(() ->
                 new IllegalArgumentException("not found"));
         userFolderRepo.delete(userFolder);
+        this.checkRepeat(userFolder);
+    }
+
+    @Transactional
+    @Override
+    public void checkRepeat(UserFolder userFolder){
+        if(userFolderRepo.existsByUserIdAndFolderIdAndStatus(userFolder.getUser().getId(),userFolder.getFolder().getId(),JoinStatus.REQUEST)){
+            UserFolder userFolder1 = userFolderRepo.findByUserIdAndFolderIdAndStatus(userFolder.getUser().getId(),userFolder.getFolder().getId(),JoinStatus.REQUEST);
+            userFolderRepo.delete(userFolder1);
+        }
+        else if(userFolderRepo.existsByUserIdAndFolderIdAndStatus(userFolder.getUser().getId(),userFolder.getFolder().getId(),JoinStatus.INVITATION)){
+            UserFolder userFolder1 = userFolderRepo.findByUserIdAndFolderIdAndStatus(userFolder.getUser().getId(),userFolder.getFolder().getId(),JoinStatus.INVITATION);
+            System.out.println(userFolder1.getId());
+            userFolderRepo.delete(userFolder1);
+        }
     }
 
 
@@ -161,7 +188,7 @@ public class UserServiceImpl implements UserService {
         // create event to sent notification
         outBoxService.addEvent(notificationRequest, EventTypes.SENT_NOTIFICATION_TO_USER);
 
-        UserFolder userFolder = userFolderRepo.findByUserIdAndFolderId(request.getUserId(), request.getFolderId());
+        UserFolder userFolder = userFolderRepo.findByUserIdAndFolderIdAndStatus(request.getUserId(), request.getFolderId(),JoinStatus.ACCEPTED);
         userFolderRepo.delete(userFolder);
 
     }

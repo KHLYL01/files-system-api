@@ -27,4 +27,5 @@ public interface FolderService {
     List<FolderResponse> getOtherFolder();
 
     void invitationUser(InvitationUserToGroupRequest request);
+
 }

@@ -6,6 +6,7 @@ import com.conquer_team.files_system.model.dto.requests.JoinToGroupRequest;
 import com.conquer_team.files_system.notation.AdminFolder;
 import com.conquer_team.files_system.services.FolderService;
 import com.conquer_team.files_system.services.UserService;
+import io.swagger.v3.oas.annotations.Parameter;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -46,8 +47,8 @@ public class JoinController {
         return new ResponseEntity<>(HttpStatus.CREATED);
     }
 
-    @PutMapping("/accept/{id}")
-    public ResponseEntity<?> acceptInvitationOrJoinRequest(@PathVariable long id) {
+    @PutMapping("/accept")
+    public ResponseEntity<?> acceptInvitationOrJoinRequest(@RequestParam long id) {
         userService.acceptInvitationOrJoinRequest(id);
         return ResponseEntity.ok().build();
     }

@@ -13,7 +13,7 @@ public class OutBoxMapper {
     public OutBox toEntity(String request , EventTypes type){
         return OutBox.builder()
                 .status(MessageStatus.PENDING)
-                .event_type(type)
+                .type(type)
                 .payload(request)
                 .build();
     }

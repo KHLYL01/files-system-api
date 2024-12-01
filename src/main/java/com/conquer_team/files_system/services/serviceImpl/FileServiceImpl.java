@@ -225,11 +225,11 @@ public class FileServiceImpl implements FileService {
                     // create event to compareFiles
                     outBoxService.addEvent(compareRequest, EventTypes.COMPARE_FILES);
                 }
-//                NotificationRequest notificationRequest = NotificationRequest.builder().tittle("New Update")
-//                        .message("The file" + fileName + "has been modified by " + file.getBookedUser().getFullname())
-//                        .topic("group" + file.getFolder().getId()).build();
-//                //create event to sent Notification
-//                outBoxService.addEvent(notificationRequest, EventTypes.SENT_NOTIFICATION_TO_ALL_MEMBERS);
+                NotificationRequest notificationRequest = NotificationRequest.builder().title("New Update")
+                        .message("The file" + fileName + "has been modified by " + file.getBookedUser().getFullname())
+                        .folderId(file.getFolder().getId()).build();
+                //create event to sent Notification
+                outBoxService.addEvent(notificationRequest, EventTypes.SENT_NOTIFICATION_TO_ALL_MEMBERS);
             }
             file.setBookedUser(null);
             return mapper.toDto(repo.save(file));

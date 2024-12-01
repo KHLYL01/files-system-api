@@ -26,7 +26,7 @@ public class OutBox {
     private long id;
 
     @Enumerated(EnumType.STRING)
-    private EventTypes event_type;
+    private EventTypes type;
 
     @Type(JsonType.class)
     @Column(columnDefinition = "json")
