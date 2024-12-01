@@ -15,11 +15,10 @@ public class CorsConfiguration {
             public void addCorsMappings(CorsRegistry registry) {
                 // Enable Cors for whole application
                 registry.addMapping("/**")
-                        .allowedOrigins("http://195.88.87.77:8888", "http://localhost:8080")
+                        .allowedOrigins("*")
                         .allowedMethods("GET", "POST", "PUT", "DELETE", "OPTIONS")
                         .allowedHeaders("*")
-                        .allowCredentials(true);
-
+                        .allowCredentials(false);
             }
         };
     }
