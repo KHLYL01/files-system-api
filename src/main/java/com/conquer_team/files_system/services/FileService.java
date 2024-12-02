@@ -15,7 +15,7 @@ public interface FileService {
 
     List<FileResponse> findAllBookedFileByUserId(Long userId);
 
-    void compareFiles(CompareFilesRequest request);
+//    void compareFiles(CompareFilesRequest request);
 
     List<FileResponse> findAllByFolderId(Long folderId);
 
