@@ -3,10 +3,7 @@ package com.conquer_team.files_system.services.serviceImpl;
 import com.conquer_team.files_system.config.JwtService;
 import com.conquer_team.files_system.model.dto.requests.*;
 import com.conquer_team.files_system.model.dto.response.FileResponse;
-import com.conquer_team.files_system.model.entity.Backups;
-import com.conquer_team.files_system.model.entity.File;
-import com.conquer_team.files_system.model.entity.Folder;
-import com.conquer_team.files_system.model.entity.User;
+import com.conquer_team.files_system.model.entity.*;
 import com.conquer_team.files_system.model.enums.EventTypes;
 import com.conquer_team.files_system.model.enums.FileStatus;
 import com.conquer_team.files_system.model.enums.FolderSetting;
@@ -15,6 +12,9 @@ import com.conquer_team.files_system.model.mapper.FileMapper;
 import com.conquer_team.files_system.repository.*;
 import com.conquer_team.files_system.services.BackupService;
 import com.conquer_team.files_system.services.FileService;
+import com.github.difflib.DiffUtils;
+import com.github.difflib.patch.AbstractDelta;
+import com.github.difflib.patch.Patch;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.cache.annotation.CacheEvict;
@@ -27,12 +27,11 @@ import org.springframework.web.multipart.MultipartFile;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.nio.file.StandardCopyOption;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.UUID;
+import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 
 @Service
@@ -152,6 +151,7 @@ public class FileServiceImpl implements FileService {
         return mapper.toDto(savedFile, backups);
     }
 
+    @CacheEvict(value = "files", allEntries = true)
     @Override
     public FileResponse checkIn(CheckInFileRequest request) {
 
@@ -187,6 +187,7 @@ public class FileServiceImpl implements FileService {
         }
     }
 
+    @CacheEvict(value = "files", allEntries = true)
     @Transactional
     @Override
     public List<FileResponse> checkInAll(CheckInAllFileRequest request) {
@@ -203,15 +204,17 @@ public class FileServiceImpl implements FileService {
     }
 
 
+    @CacheEvict(value = "files", allEntries = true)
     @Transactional
     @Override
     public FileResponse checkOut(CheckOutRequest request, long id) throws IOException {
         File file = repo.findById(id).orElseThrow(
                 () -> new IllegalArgumentException("File with id " + id + " is not found")
         );
+
         if (file.getStatus() == FileStatus.UNAVAILABLE) {
             file.setStatus(FileStatus.AVAILABLE);
-
+            System.out.println("A");
             if (request.getFile() != null) {
                 String fileName = request.getFile().getOriginalFilename();
                 if (!file.getName().contains(fileName)) {
@@ -232,6 +235,7 @@ public class FileServiceImpl implements FileService {
                 //create event to sent Notification
                 outBoxService.addEvent(notificationRequest, EventTypes.SENT_NOTIFICATION_TO_ALL_MEMBERS);
             }
+            System.out.println("B");
             file.setBookedUser(null);
             return mapper.toDto(repo.save(file));
         } else {
@@ -263,66 +267,66 @@ public class FileServiceImpl implements FileService {
         return uniqueFileName;
     }
 
-//    @Override
-//    public void compareFiles(CompareFilesRequest request) {
-//        String details = "";
-//        try {
-//            List<String> oldFileLines = Files.readAllLines(Paths.get(uploadImageDirectory + "/" + request.getOldFile()));
-//            List<String> newFileLines = Files.readAllLines(Paths.get(uploadImageDirectory + "/" + request.getNewFile()));
-//
-//            String newFileContent = String.join("\n", newFileLines);
-//            int newFileSizeInBytes = newFileContent.getBytes("UTF-8").length;
-//            Patch<String> patch = DiffUtils.diff(oldFileLines, newFileLines);
-//            String update_type = "No Any Update";
-//            int size = newFileSizeInBytes, revisedEndLine = 0;
-//            Set<Integer> changedNewLines = new TreeSet<>();
-//            if (patch.getDeltas().isEmpty()) {
-//                details = "No differences found between the files.";
-//            } else {
-//                for (AbstractDelta<String> delta : patch.getDeltas()) {
-//                    update_type = delta.getType().toString();
-//                    String changeType = delta.getType().toString();
-//                    int revisedStartLine = delta.getTarget().getPosition() + 1;
-//                    revisedEndLine = revisedStartLine + delta.getTarget().getLines().size() - 1;
-//                    for (int i = revisedStartLine; i <= revisedEndLine; i++) {
-//                        changedNewLines.add(i);
-//                    }
-//                    if (changeType.equals("CHANGE") || changeType.equals("INSERT") || changeType.equals("DELETE")) {
-//                        for (int i = revisedStartLine; i <= revisedEndLine; i++) {
-//
-//                            details += "Line: " + i + " | Change Type: " + changeType + "\n";
-//
-//                            if (changeType.equals("CHANGE") || changeType.equals("INSERT")) {
-//                                details += "New content: " + delta.getTarget().getLines().get(i - revisedStartLine) + "\n";
-//                            }
-//
-//                            if (changeType.equals("DELETE")) {
-//                                details += "Old content: " + delta.getSource().getLines().get(i - revisedStartLine) + "\n";
-//                            }
-//                        }
-//                    }
-//                }
-//            }
-//
-//            File file = repo.findById(request.getFileId()).orElseThrow(() ->
-//                    new IllegalArgumentException("file not found  id: " + request.getFileId()));
-//            User user = userRepo.findById(request.getUserId()).orElseThrow(() ->
-//                    new IllegalArgumentException("user not found id: " + request.getUserId()));
-//
-//            archiveRepo.save(Archive.builder()
-//                    .size(size)
-//                    .numOfUpdateLines(changedNewLines.size())
-//                    .type(update_type)
-//                    .details(details)
-//                    .file(file)
-//                    .user(user)
-//                    .build());
-//            System.out.println("Added archive");
-//        } catch (Exception e) {
-//            throw new IllegalArgumentException(e.getLocalizedMessage());
-//        }
-//
-//    }
+    @Override
+    public void compareFiles(CompareFilesRequest request) {
+        String details = "";
+        try {
+            List<String> oldFileLines = Files.readAllLines(Paths.get(uploadImageDirectory + "/" + request.getOldFile()));
+            List<String> newFileLines = Files.readAllLines(Paths.get(uploadImageDirectory + "/" + request.getNewFile()));
+
+            String newFileContent = String.join("\n", newFileLines);
+            int newFileSizeInBytes = newFileContent.getBytes("UTF-8").length;
+            Patch<String> patch = DiffUtils.diff(oldFileLines, newFileLines);
+            String update_type = "No Any Update";
+            int size = newFileSizeInBytes, revisedEndLine = 0;
+            Set<Integer> changedNewLines = new TreeSet<>();
+            if (patch.getDeltas().isEmpty()) {
+                details = "No differences found between the files.";
+            } else {
+                for (AbstractDelta<String> delta : patch.getDeltas()) {
+                    update_type = delta.getType().toString();
+                    String changeType = delta.getType().toString();
+                    int revisedStartLine = delta.getTarget().getPosition() + 1;
+                    revisedEndLine = revisedStartLine + delta.getTarget().getLines().size() - 1;
+                    for (int i = revisedStartLine; i <= revisedEndLine; i++) {
+                        changedNewLines.add(i);
+                    }
+                    if (changeType.equals("CHANGE") || changeType.equals("INSERT") || changeType.equals("DELETE")) {
+                        for (int i = revisedStartLine; i <= revisedEndLine; i++) {
+
+                            details += "Line: " + i + " | Change Type: " + changeType + "\n";
+
+                            if (changeType.equals("CHANGE") || changeType.equals("INSERT")) {
+                                details += "New content: " + delta.getTarget().getLines().get(i - revisedStartLine) + "\n";
+                            }
+
+                            if (changeType.equals("DELETE")) {
+                                details += "Old content: " + delta.getSource().getLines().get(i - revisedStartLine) + "\n";
+                            }
+                        }
+                    }
+                }
+            }
+
+            File file = repo.findById(request.getFileId()).orElseThrow(() ->
+                    new IllegalArgumentException("file not found  id: " + request.getFileId()));
+            User user = userRepo.findById(request.getUserId()).orElseThrow(() ->
+                    new IllegalArgumentException("user not found id: " + request.getUserId()));
+
+            archiveRepo.save(Archive.builder()
+                    .size(size)
+                    .numOfUpdateLines(changedNewLines.size())
+                    .type(update_type)
+                    .details(details)
+                    .file(file)
+                    .user(user)
+                    .build());
+            System.out.println("Added archive");
+        } catch (Exception e) {
+            throw new IllegalArgumentException(e.getLocalizedMessage());
+        }
+
+    }
 
 
     @Override

@@ -62,8 +62,8 @@ public class ArchiveServiceImpl implements ArchiveService {
 
 
         ICsvBeanWriter csvWriter = new CsvBeanWriter(response.getWriter(), CsvPreference.STANDARD_PREFERENCE);
-        String[] csvHeader = {"User", "File", "Update_Size", "Update_type", "Number_Of_Modified_Lines", "Details"};
-        String[] nameMapping = {"user", "file", "size", "type", "numOfUpdateLines", "details"};
+        String[] csvHeader = {"User", "File", "Update_Size", "Update_type", "Number_Of_Modified_Lines", "Details","UpdateAt"};
+        String[] nameMapping = {"user", "file", "size", "type", "numOfUpdateLines", "details","createdAt"};
 
         csvWriter.writeHeader(csvHeader);
 

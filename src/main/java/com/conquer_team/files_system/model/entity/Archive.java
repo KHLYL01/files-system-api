@@ -47,7 +47,7 @@ public class Archive {
         return user.getFullname();
     }
 
-    // طريقة لتحويل الكائن file إلى نص
+
     public String getFile() {
         return file.getName();
     }
