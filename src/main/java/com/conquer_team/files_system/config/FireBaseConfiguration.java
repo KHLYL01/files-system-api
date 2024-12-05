@@ -18,8 +18,8 @@ import java.io.InputStream;
 @Configuration
 public class FireBaseConfiguration {
 
-    private static final String FIREBASE_CONFIG_PATH = "filemanager-446f0-firebase-adminsdk-omy7t-34b300117f.json";
-
+    private static final String FIREBASE_CONFIG_PATH = "filemanager-446f0-firebase-adminsdk-omy7t-3f455fc4a2.json";
+// src/main/resources/
 
 //    @Bean
 //    		try {

@@ -36,7 +36,7 @@ public class File {
     @JoinColumn(name = "folder_id")
     private Folder folder;
 
-    @OneToMany(mappedBy = "file",cascade = CascadeType.REMOVE)
+    @OneToMany(mappedBy = "file",cascade = CascadeType.ALL,orphanRemoval = true)
     private List<Backups> backups;
 
     @OneToMany(mappedBy = "file",cascade = CascadeType.REMOVE)

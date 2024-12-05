@@ -1,10 +1,7 @@
 package com.conquer_team.files_system.controller;
 
+import com.conquer_team.files_system.model.dto.requests.*;
 import com.conquer_team.files_system.notation.AdminFolder;
-import com.conquer_team.files_system.model.dto.requests.AddFileRequest;
-import com.conquer_team.files_system.model.dto.requests.CheckInAllFileRequest;
-import com.conquer_team.files_system.model.dto.requests.CheckInFileRequest;
-import com.conquer_team.files_system.model.dto.requests.CheckOutRequest;
 import com.conquer_team.files_system.services.FileService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
@@ -31,6 +28,12 @@ public class FileController {
 //    public ResponseEntity<?> findAllByUserId(@PathVariable Long id) {
 //        return ResponseEntity.ok(fileService.findAllByUserId(id));
 //    }
+
+    @GetMapping("/pending/{folderId}")
+    @AdminFolder
+    public ResponseEntity<?> getPendingFiles(@PathVariable long folderId){
+        return ResponseEntity.status(200).body(fileService.getPendingFiles(folderId));
+    }
 
     @GetMapping("/{id}")
     public ResponseEntity<?> getById(@PathVariable long id){
@@ -74,6 +77,13 @@ public class FileController {
     public ResponseEntity<?> deleteById(@PathVariable Long id) {
         fileService.deleteById(id);
         return new ResponseEntity<>(HttpStatus.CREATED);
+    }
+
+    @PutMapping("/accept")
+    @AdminFolder
+    public ResponseEntity<?> acceptOrRejectFile(AcceptOrRejectFileRequest request){
+      fileService.acceptOrRejectFile(request);
+      return  ResponseEntity.noContent().build();
     }
 
 }

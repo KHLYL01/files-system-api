@@ -34,4 +34,5 @@ public interface UserService {
     void checkRepeat(UserFolder userFolder);
 
     void leaveFolder(LeaveFolderRequest request);
+    List<UserResponse> usersInFolder(long id);
 }

@@ -2,6 +2,7 @@ package com.conquer_team.files_system.services;
 
 import com.conquer_team.files_system.model.dto.requests.*;
 import com.conquer_team.files_system.model.dto.response.FileResponse;
+import com.conquer_team.files_system.model.entity.File;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
@@ -34,6 +35,10 @@ public interface FileService {
     FileResponse checkOut(CheckOutRequest request, long id) throws IOException;
 
     FileResponse getById(long id);
+
+    void acceptOrRejectFile(AcceptOrRejectFileRequest request);
+
+    List<FileResponse> getPendingFiles(long id);
 
 //    byte[] viewFile(String fileName) throws IOException;
 

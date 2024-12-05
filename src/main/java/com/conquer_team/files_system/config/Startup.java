@@ -66,14 +66,14 @@ public class Startup implements CommandLineRunner {
                 LoginRequest.builder()
                         .email("admin@gmail.com")
                         .password("12345678")
-                        .fcmToken("f02gXZqyiLxdSM-R21tfmd:APA91bETMBmujgpgce9FT6rioG09l8O_LWyqVrK_t4s4vEy34T_G0JpCSvW41GmGEnKmzBgY3Ffv0p_-y1FI8NI-YpJkuEgxE-3_cu7t72jHaFfbf6J2Dek")
+                        .fcmToken("eogQzu94a6BcTt_wfph7uH:APA91bEujxERyNWOno4Xe_yhjPvZzkWmDt8F2jVciXIBzs0JFjq3ExdjjtZwtM_nx-e8p0_Q5xVL8ld0KB6wSHwsvTllVlnl0PJMO0ZMOupniESSRUM0TEM")
                         .build()
         );
         LoginResponse userLogin = authService.login(
                 LoginRequest.builder()
                         .email("user@gmail.com")
                         .password("12345678")
-                        .fcmToken("f02gXZqyiLxdSM-R21tfmd:APA91bETMBmujgpgce9FT6rioG09l8O_LWyqVrK_t4s4vEy34T_G0JpCSvW41GmGEnKmzBgY3Ffv0p_-y1FI8NI-YpJkuEgxE-3_cu7t72jHaFfbf6J2Dek")
+                        .fcmToken("eogQzu94a6BcTt_wfph7uH:APA91bEujxERyNWOno4Xe_yhjPvZzkWmDt8F2jVciXIBzs0JFjq3ExdjjtZwtM_nx-e8p0_Q5xVL8ld0KB6wSHwsvTllVlnl0PJMO0ZMOupniESSRUM0TEM")
                         .build()
         );
         printInfo(adminLogin);
@@ -90,5 +90,9 @@ public class Startup implements CommandLineRunner {
         System.out.println("Token: "+ response.getToken());
         System.out.println("Refresh token: "+ response.getRefreshToken());
     }
+
+
+
+  //  {"title":"New Join Request for Your Group","message":"userhas requested to join the group [Admin Folder]. Review and approve or deny the request.","folderId":null,"userId":1}
 
 }

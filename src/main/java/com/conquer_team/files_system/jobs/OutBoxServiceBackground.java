@@ -40,7 +40,7 @@ public class OutBoxServiceBackground {
                 box.setStatus(MessageStatus.FAILED);
                 outBoxRepo.save(box);
                 System.out.println(e.getLocalizedMessage());
-               // throw new IllegalArgumentException(e.getLocalizedMessage());
+                throw new IllegalArgumentException(e.getLocalizedMessage());
             }
         }
     }

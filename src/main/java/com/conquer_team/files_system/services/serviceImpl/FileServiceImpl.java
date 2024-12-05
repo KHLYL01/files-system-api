@@ -25,10 +25,8 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.nio.file.Paths;
-import java.nio.file.StandardCopyOption;
+import java.nio.file.*;
+import java.nio.file.attribute.BasicFileAttributes;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.*;
@@ -85,19 +83,50 @@ public class FileServiceImpl implements FileService {
         return mapper.toDto(file);
     }
 
+    @Override
+    public void acceptOrRejectFile(AcceptOrRejectFileRequest request) {
+        System.out.println("aaaaaaaaaaaaaaaaaaa");
+        File file = repo.findById(request.getFileId()).orElseThrow(() ->
+                new IllegalArgumentException("file not found"));
+        if (request.isAccept()) {
+            file.setStatus(FileStatus.AVAILABLE);
+            repo.save(file);
+        }
+        //repo.delete(file);
+        else this.deleteById(request.getFileId());
+    }
+
+    @Override
+    public List<FileResponse> getPendingFiles(long id) {
+        List<File> files = repo.findAllByFolderIdAndStatusIs(id, FileStatus.PENDING);
+        return mapper.toDtos(files);
+    }
+
+//    @Override
+//    public FileResponse acceptFile(long id) {
+//        File file = repo.findById(id).orElseThrow(()->
+//                new IllegalArgumentException("file not found"));
+//        if(!file.getStatus().equals(FileStatus.PENDING)){
+//            throw new IllegalArgumentException("the file is accepted.");
+//        }
+//        file.setStatus(FileStatus.AVAILABLE);
+//       return mapper.toDto(repo.save(file));
+//    }
+//
+//    @Override
+//    public FileResponse rejectFile(long id) {
+//        return null;
+//    }
+
     @CacheEvict(value = "files", allEntries = true)
     @Override
     public void deleteById(Long id) {
         repo.findById(id).ifPresentOrElse(file -> {
-            if (file.getStatus() == FileStatus.AVAILABLE) {
-                try {
-                    deleteFile(file.getName());
-                    repo.delete(file);
-                } catch (IOException e) {
-                    e.printStackTrace();
-                }
-            } else {
-                throw new IllegalArgumentException("File with id " + id + " is not Available");
+            try {
+                repo.delete(file);
+                deleteFile(file.getName());
+            } catch (IOException e) {
+                e.printStackTrace();
             }
         }, () -> {
             throw new IllegalArgumentException("File with id " + id + " is not found");
@@ -131,6 +160,7 @@ public class FileServiceImpl implements FileService {
         file.setFolder(folder);
 
         if (!user.getId().equals(folder.getUser().getId())) {
+            file.setStatus(FileStatus.PENDING);
             NotificationRequest notificationRequest = NotificationRequest.builder()
                     .title("New File Uploaded in Your Group")
                     .message(user.getFullname() + " has uploaded a new file to the group [" + folder.getName() + "] . Check it out to review or manage the content.")
@@ -330,10 +360,23 @@ public class FileServiceImpl implements FileService {
 
 
     @Override
-    public void deleteFile(String fileName) throws IOException {
-        Path imagePath = Path.of(uploadImageDirectory, fileName);
-        if (Files.exists(imagePath)) {
-            Files.delete(imagePath);
+    public void deleteFile(String folder) throws IOException {
+        Path directoryPath = Path.of(uploadImageDirectory, folder);
+
+        if (Files.exists(directoryPath)) {
+            Files.walkFileTree(directoryPath, new SimpleFileVisitor<>() {
+                @Override
+                public FileVisitResult visitFile(Path file, BasicFileAttributes attrs) throws IOException {
+                    Files.delete(file);
+                    return FileVisitResult.CONTINUE;
+                }
+
+                @Override
+                public FileVisitResult postVisitDirectory(Path dir, IOException exc) throws IOException {
+                    Files.delete(dir);
+                    return FileVisitResult.CONTINUE;
+                }
+            });
         }
     }
 

@@ -55,6 +55,10 @@ public class UserServiceImpl implements UserService {
         return mapper.toDto(user);
     }
 
+    @Override
+    public List<UserResponse> usersInFolder(long id) {
+        return null;
+    }
 
     @Override
     public List<UserResponse> findAll() {
@@ -189,6 +193,7 @@ public class UserServiceImpl implements UserService {
         outBoxService.addEvent(notificationRequest, EventTypes.SENT_NOTIFICATION_TO_USER);
 
         UserFolder userFolder = userFolderRepo.findByUserIdAndFolderIdAndStatus(request.getUserId(), request.getFolderId(),JoinStatus.ACCEPTED);
+        System.out.println(userFolder.getFolder().getName()+"  "+userFolder.getUser().getFullname());
         userFolderRepo.delete(userFolder);
 
     }

@@ -19,5 +19,6 @@ public interface UserFolderRepo extends JpaRepository<UserFolder,Long> {
 
     UserFolder findByUserIdAndFolderId(long userId,long folderId);
     UserFolder findByUserIdAndFolderIdAndStatus(long userId, long folderId, JoinStatus status);
+    List<UserFolder> findAllByUserIdAndFolderIdAndStatus(long userId, long folderId, JoinStatus status);
 
 }

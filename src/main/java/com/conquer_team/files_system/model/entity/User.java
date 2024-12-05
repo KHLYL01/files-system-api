@@ -45,13 +45,13 @@ public class User implements UserDetails {
     @OneToMany(mappedBy = "user",fetch = FetchType.EAGER,orphanRemoval = true)
     private List<File> listOfFiles;
 
-    @OneToMany(mappedBy = "user", cascade = CascadeType.ALL)
+    @OneToMany(mappedBy = "user",fetch = FetchType.EAGER, cascade = CascadeType.ALL)
     private List<UserFolder> userFolders;
 
     @OneToMany(mappedBy = "user", cascade = CascadeType.REMOVE)
     private List<Archive> archives;
 
-    @OneToMany(mappedBy = "user",cascade = CascadeType.REMOVE)
+    @OneToMany(mappedBy = "user",fetch = FetchType.EAGER,cascade = CascadeType.REMOVE)
     private List<Folder> folders;
 
     @OneToMany(mappedBy = "user",cascade = CascadeType.REMOVE)

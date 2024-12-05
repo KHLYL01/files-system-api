@@ -1,6 +1,7 @@
 package com.conquer_team.files_system.aop;
 
 import com.conquer_team.files_system.config.JwtService;
+import com.conquer_team.files_system.model.dto.requests.AcceptOrRejectFileRequest;
 import com.conquer_team.files_system.model.dto.requests.AddFileRequest;
 import com.conquer_team.files_system.model.dto.requests.InvitationUserToGroupRequest;
 import com.conquer_team.files_system.model.entity.File;
@@ -39,6 +40,8 @@ public class CheckUserAuthorizationAspect {
             folderId = request1.getFolderId();
         } else if (args[0] instanceof AddFileRequest request2) {
             folderId = request2.getFolderId();
+        }else if (args[0] instanceof AcceptOrRejectFileRequest request3) {
+            folderId = fileRepo.findById(request3.getFileId()).get().getFolder().getId();
         } else {
             folderId = (long) args[0];
         }
@@ -50,6 +53,7 @@ public class CheckUserAuthorizationAspect {
         if (!user.getId().equals(folder.getUser().getId())) {
             throw new AccessDeniedException("You do not have the necessary permissions to access this resource.");
         }
+
     }
 
 

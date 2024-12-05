@@ -23,7 +23,7 @@ public class Folder {
 
     private String name;
 
-    @ElementCollection(targetClass = FolderSetting.class)
+    @ElementCollection(targetClass = FolderSetting.class,fetch = FetchType.EAGER)
     @Enumerated(EnumType.STRING)
     private Set<FolderSetting> settings = new HashSet<>();
 
