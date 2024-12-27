@@ -2,6 +2,7 @@ package com.conquer_team.files_system.services;
 
 import com.conquer_team.files_system.model.dto.requests.*;
 import com.conquer_team.files_system.model.dto.response.FileResponse;
+import com.conquer_team.files_system.model.dto.response.FileTracingResponse;
 import com.conquer_team.files_system.model.entity.File;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -39,6 +40,8 @@ public interface FileService {
     void acceptOrRejectFile(AcceptOrRejectFileRequest request);
 
     List<FileResponse> getPendingFiles(long id);
+
+    List<FileTracingResponse> getTracingOnFileByFileId(long id);
 
 //    byte[] viewFile(String fileName) throws IOException;
 

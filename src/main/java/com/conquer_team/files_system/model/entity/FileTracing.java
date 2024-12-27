@@ -28,7 +28,6 @@ public class FileTracing {
     @JoinColumn(name = "user_id")
     private User user;
 
-
     @Enumerated(EnumType.STRING)
     private FileOperationType type;
 

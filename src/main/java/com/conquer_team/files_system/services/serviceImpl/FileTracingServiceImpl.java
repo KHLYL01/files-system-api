@@ -7,6 +7,8 @@ import com.conquer_team.files_system.model.mapper.FileTracingMapper;
 import com.conquer_team.files_system.repository.FileTracingRepo;
 import com.conquer_team.files_system.services.FileTracingService;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
@@ -18,7 +20,7 @@ public class FileTracingServiceImpl implements FileTracingService {
 
     private final FileTracingRepo repo;
     private final FileTracingMapper mapper;
-
+    private final FileTracingRepo fileTracingRepo;
 
 //    @Override
 //    public List<FileTracingResponse> findAll() {
@@ -65,4 +67,19 @@ public class FileTracingServiceImpl implements FileTracingService {
     public void deleteById(Long id) {
         repo.deleteById(id);
     }
+
+    @Override
+    public List<FileTracingResponse> getTracingOnFileByFileId(long id) {
+        Pageable pageable = PageRequest.of(0, 20);
+        List<FileTracing> fileTracings = fileTracingRepo.findLatest10ByFileId(id, pageable);
+        return mapper.toDtos(fileTracings);
+    }
+
+    //    @Override
+//    public List<FileTracingResponse> getTracingOnFileByFileId(long id){
+//        Pageable pageable = PageRequest.of(0, 10);
+//        List<FileTracing> fileTracings = fileTracingRepo.findLatest10ByFileId(id,pageable);
+//        return
+//    }
+
 }

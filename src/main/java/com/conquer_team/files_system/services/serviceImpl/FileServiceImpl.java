@@ -3,6 +3,7 @@ package com.conquer_team.files_system.services.serviceImpl;
 import com.conquer_team.files_system.config.JwtService;
 import com.conquer_team.files_system.model.dto.requests.*;
 import com.conquer_team.files_system.model.dto.response.FileResponse;
+import com.conquer_team.files_system.model.dto.response.FileTracingResponse;
 import com.conquer_team.files_system.model.entity.*;
 import com.conquer_team.files_system.model.enums.EventTypes;
 import com.conquer_team.files_system.model.enums.FileStatus;
@@ -12,6 +13,7 @@ import com.conquer_team.files_system.model.mapper.FileMapper;
 import com.conquer_team.files_system.repository.*;
 import com.conquer_team.files_system.services.BackupService;
 import com.conquer_team.files_system.services.FileService;
+import com.conquer_team.files_system.services.FileTracingService;
 import com.github.difflib.DiffUtils;
 import com.github.difflib.patch.AbstractDelta;
 import com.github.difflib.patch.Patch;
@@ -19,6 +21,8 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.cache.annotation.Cacheable;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -41,6 +45,7 @@ public class FileServiceImpl implements FileService {
     private final UserRepo userRepo;
     private final UserFolderRepo userFolderRepo;
     private final BackupService backupService;
+    private final FileTracingService fileTracingService;
     private final OutBoxServiceImpl outBoxService;
     private final ArchiveRepo archiveRepo;
     private final JwtService jwtService;
@@ -69,10 +74,15 @@ public class FileServiceImpl implements FileService {
         return mapper.toDtos(repo.findAllByBookedUserId(userId));
     }
 
+    @Override
+    public List<FileTracingResponse> getTracingOnFileByFileId(long id) {
+        return fileTracingService.getTracingOnFileByFileId(id);
+    }
+
     @Cacheable(value = "files", key = "#folderId")
     @Override
     public List<FileResponse> findAllByFolderId(Long folderId) {
-        return mapper.toDtos(repo.findAllByFolderId(folderId));
+        return mapper.toDtos(repo.findAllByFolderIdAndStatusNot(folderId,FileStatus.PENDING));
     }
 
     @Cacheable(value = "files", key = "#id")
@@ -80,12 +90,13 @@ public class FileServiceImpl implements FileService {
     public FileResponse getById(long id) {
         File file = repo.findById(id).orElseThrow(() ->
                 new IllegalArgumentException("file not found by id:" + id));
+
         return mapper.toDto(file);
     }
 
+    @CacheEvict(value = "files", allEntries = true)
     @Override
     public void acceptOrRejectFile(AcceptOrRejectFileRequest request) {
-        System.out.println("aaaaaaaaaaaaaaaaaaa");
         File file = repo.findById(request.getFileId()).orElseThrow(() ->
                 new IllegalArgumentException("file not found"));
         if (request.isAccept()) {
@@ -244,7 +255,6 @@ public class FileServiceImpl implements FileService {
 
         if (file.getStatus() == FileStatus.UNAVAILABLE) {
             file.setStatus(FileStatus.AVAILABLE);
-            System.out.println("A");
             if (request.getFile() != null) {
                 String fileName = request.getFile().getOriginalFilename();
                 if (!file.getName().contains(fileName)) {
@@ -257,6 +267,7 @@ public class FileServiceImpl implements FileService {
                             .newFile(file.getName() + "/" + fileName).userId(userRepo.findByEmail(jwtService.getCurrentUserName()).get().getId())
                             .fileId(file.getId()).build();
                     // create event to compareFiles
+                    //2024-12-27_00_23_38482df285-4f1f-4950-bb2a-e99f08439875_New Text Document.txt
                     outBoxService.addEvent(compareRequest, EventTypes.COMPARE_FILES);
                 }
                 NotificationRequest notificationRequest = NotificationRequest.builder().title("New Update")
@@ -265,14 +276,13 @@ public class FileServiceImpl implements FileService {
                 //create event to sent Notification
                 outBoxService.addEvent(notificationRequest, EventTypes.SENT_NOTIFICATION_TO_ALL_MEMBERS);
             }
-            System.out.println("B");
             file.setBookedUser(null);
             return mapper.toDto(repo.save(file));
         } else {
             throw new IllegalArgumentException("File with id " + id + " is UnAvailable");
         }
     }
-
+// 2024-12-26_17_24_196183fe1e-f750-4fe8-8fd2-77807a751494_New Text Document.txt
 
     @Override
     public String uploadFile(MultipartFile file, String path) throws IOException {
@@ -305,15 +315,20 @@ public class FileServiceImpl implements FileService {
             List<String> newFileLines = Files.readAllLines(Paths.get(uploadImageDirectory + "/" + request.getNewFile()));
 
             String newFileContent = String.join("\n", newFileLines);
+
             int newFileSizeInBytes = newFileContent.getBytes("UTF-8").length;
+
             Patch<String> patch = DiffUtils.diff(oldFileLines, newFileLines);
             String update_type = "No Any Update";
+
             int size = newFileSizeInBytes, revisedEndLine = 0;
             Set<Integer> changedNewLines = new TreeSet<>();
             if (patch.getDeltas().isEmpty()) {
                 details = "No differences found between the files.";
             } else {
+                System.out.println("11");
                 for (AbstractDelta<String> delta : patch.getDeltas()) {
+                    System.out.println("12");
                     update_type = delta.getType().toString();
                     String changeType = delta.getType().toString();
                     int revisedStartLine = delta.getTarget().getPosition() + 1;
@@ -321,6 +336,7 @@ public class FileServiceImpl implements FileService {
                     for (int i = revisedStartLine; i <= revisedEndLine; i++) {
                         changedNewLines.add(i);
                     }
+                    System.out.println("13");
                     if (changeType.equals("CHANGE") || changeType.equals("INSERT") || changeType.equals("DELETE")) {
                         for (int i = revisedStartLine; i <= revisedEndLine; i++) {
 

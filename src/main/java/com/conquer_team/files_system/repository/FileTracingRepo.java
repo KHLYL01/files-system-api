@@ -1,5 +1,6 @@
 package com.conquer_team.files_system.repository;
 
+import com.conquer_team.files_system.model.dto.response.FileTracingResponse;
 import com.conquer_team.files_system.model.entity.FileTracing;
 import com.conquer_team.files_system.model.enums.FileOperationType;
 import org.springframework.data.jpa.repository.JpaRepository;
@@ -7,6 +8,7 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
+import org.springframework.data.domain.Pageable;
 import java.time.LocalDateTime;
 import java.util.List;
 
@@ -27,5 +29,11 @@ public interface FileTracingRepo extends JpaRepository<FileTracing, Long> {
             @Param("startDate") LocalDateTime startDate,
             @Param("endDate") LocalDateTime endDate
     );
+
+    @Query("SELECT ft FROM FileTracing ft WHERE ft.file.id = :fileId ORDER BY ft.createdAt ")
+    List<FileTracing> findLatest10ByFileId(@Param("fileId") Long fileId, Pageable pageable);
+
+//    @Query(value = "SELECT * FROM file_tracing WHERE file_id = :fileId ORDER BY timestamp DESC LIMIT 10", nativeQuery = true)
+//    List<FileTracing> findLatest10ByFileId(@Param("fileId") Long fileId);
 
 }

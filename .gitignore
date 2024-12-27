@@ -20,7 +20,7 @@ target/
 *.ipr
 
 !**/src/main/resources/static/images/
-
+!**/src/main/resources/filemanager-446f0-firebase-adminsdk-omy7t-3f455fc4a2.json
 ### NetBeans ###
 /nbproject/private/
 /nbbuild/
