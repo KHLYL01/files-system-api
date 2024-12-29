@@ -45,7 +45,7 @@ public class FileMapper {
         return FileResponse.builder()
                 .id(entity.getId())
                 .name(entity.getName())
-                .url("/api/v1/downloads?filename="+entity.getName()+"/"+backups.getName())
+                .url("http://195.88.87.77:8888/api/v1/downloads/file?filename="+entity.getName()+"/"+backups.getName())
                 .status(entity.getStatus())
                 .bookedUser(userMapper.toDto(entity.getBookedUser()))
                 .folderId(entity.getFolder().getId())
