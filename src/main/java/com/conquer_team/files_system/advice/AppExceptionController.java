@@ -83,7 +83,7 @@ public class AppExceptionController {
                 .message(ex.getLocalizedMessage())
                 .build();
 
-        log.error("IllegalArgumentException",ex);
+//        log.error("IllegalArgumentException",ex);
 
         return new ResponseEntity<>(exceptionResponse, HttpStatus.BAD_REQUEST);
     }
