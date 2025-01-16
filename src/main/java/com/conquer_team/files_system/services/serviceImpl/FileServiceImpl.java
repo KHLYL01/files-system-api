@@ -24,6 +24,8 @@ import org.apache.pdfbox.text.PDFTextStripper;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.cache.annotation.Cacheable;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -60,8 +62,9 @@ public class FileServiceImpl implements FileService {
     private final ConcurrentHashMap<Long, Object> fileLocks = new ConcurrentHashMap<>();
 
     @Override
-    public List<FileResponse> findAll() {
-        return mapper.toDtos(repo.findAll());
+    public List<FileResponse> findAll(int pageNumber,int pageSize) {
+        Pageable pageable = PageRequest.of(pageNumber,pageSize);
+        return mapper.toDtos(repo.findAll(pageable).getContent());
     }
 
 //    @Override
@@ -71,19 +74,21 @@ public class FileServiceImpl implements FileService {
 
     @Cacheable(value = "files", key = "#userId")
     @Override
-    public List<FileResponse> findAllBookedFileByUserId(Long userId) {
-        return mapper.toDtos(repo.findAllByBookedUserId(userId));
+    public List<FileResponse> findAllBookedFileByUserId(Long userId,int pageNumber,int pageSize) {
+        Pageable pageable = PageRequest.of(pageNumber,pageSize);
+        return mapper.toDtos(repo.findAllByBookedUserId(userId,pageable));
     }
 
-    @Override
-    public List<FileTracingResponse> getTracingOnFileByFileId(long id) {
-        return fileTracingService.getTracingOnFileByFileId(id);
-    }
+//    @Override
+//    public List<FileTracingResponse> getTracingOnFileByFileId(long id) {
+//        return fileTracingService.getTracingOnFileByFileId(id);
+//    }
 
     @Cacheable(value = "files", key = "#folderId")
     @Override
-    public List<FileResponse> findAllByFolderId(Long folderId) {
-        return mapper.toDtos(repo.findAllByFolderIdAndStatusNot(folderId,FileStatus.PENDING));
+    public List<FileResponse> findAllByFolderId(Long folderId,int pageNumber,int pageSize) {
+        Pageable pageable = PageRequest.of(pageNumber,pageSize);
+        return mapper.toDtos(repo.findAllByFolderIdAndStatusNot(folderId,FileStatus.PENDING,pageable));
     }
 
     @Cacheable(value = "files", key = "#id")
@@ -111,8 +116,9 @@ public class FileServiceImpl implements FileService {
     }
 
     @Override
-    public List<FileResponse> getPendingFiles(long id) {
-        List<File> files = repo.findAllByFolderIdAndStatusIs(id, FileStatus.PENDING);
+    public List<FileResponse> getPendingFiles(long id,int pageNumber,int pageSize) {
+        Pageable pageable = PageRequest.of(pageNumber,pageSize);
+        List<File> files = repo.findAllByFolderIdAndStatusIs(id, FileStatus.PENDING,pageable);
         return mapper.toDtos(files);
     }
 

@@ -20,8 +20,8 @@ public class FileController {
 
     final private FileService fileService;
     @GetMapping
-    public ResponseEntity<?> findAll() {
-        return ResponseEntity.ok(fileService.findAll());
+    public ResponseEntity<?> findAll(@RequestParam(defaultValue = "0") int pageNumber,@RequestParam(defaultValue = "10") int pageSize) {
+        return ResponseEntity.ok(fileService.findAll(pageNumber,pageSize));
     }
 
 //    @GetMapping("/users/{id}")
@@ -31,8 +31,8 @@ public class FileController {
 
     @GetMapping("/pending/{folderId}")
     @AdminFolder
-    public ResponseEntity<?> getPendingFiles(@PathVariable long folderId){
-        return ResponseEntity.status(200).body(fileService.getPendingFiles(folderId));
+    public ResponseEntity<?> getPendingFiles(@PathVariable long folderId,@RequestParam(defaultValue = "0") int pageNumber,@RequestParam(defaultValue = "10") int pageSize){
+        return ResponseEntity.status(200).body(fileService.getPendingFiles(folderId,pageNumber,pageSize));
     }
 
     @GetMapping("/{id}")
@@ -40,19 +40,19 @@ public class FileController {
         return ResponseEntity.status(200).body(fileService.getById(id));
     }
 
-    @GetMapping("/tracing/{id}")
-    public ResponseEntity<?> getTracingOnFileByFileId(@PathVariable long id){
-        return ResponseEntity.status(200).body(fileService.getTracingOnFileByFileId(id));
-    }
+//    @GetMapping("/tracing/{id}")
+//    public ResponseEntity<?> getTracingOnFileByFileId(@PathVariable long id){
+//        return ResponseEntity.status(200).body(fileService.getTracingOnFileByFileId(id));
+//    }
 
     @GetMapping("booked/users/{id}")
-    public ResponseEntity<?> findAllBookedByUserId(@PathVariable Long id) {
-        return ResponseEntity.ok(fileService.findAllBookedFileByUserId(id));
+    public ResponseEntity<?> findAllBookedByUserId(@PathVariable Long id ,@RequestParam(defaultValue = "0") int pageNumber,@RequestParam(defaultValue = "10") int pageSize) {
+        return ResponseEntity.ok(fileService.findAllBookedFileByUserId(id,pageNumber,pageSize));
     }
 
     @GetMapping("/folders/{id}")
-    public ResponseEntity<?> findAllByFolderId(@PathVariable Long id) {
-        return ResponseEntity.ok(fileService.findAllByFolderId(id));
+    public ResponseEntity<?> findAllByFolderId(@PathVariable Long id,@RequestParam(defaultValue = "0") int pageNumber,@RequestParam(defaultValue = "10") int pageSize) {
+        return ResponseEntity.ok(fileService.findAllByFolderId(id,pageNumber,pageSize));
     }
 
     @PostMapping(consumes = MediaType.MULTIPART_FORM_DATA_VALUE)

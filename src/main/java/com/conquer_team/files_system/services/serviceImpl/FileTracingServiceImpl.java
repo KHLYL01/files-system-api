@@ -75,11 +75,4 @@ public class FileTracingServiceImpl implements FileTracingService {
         return mapper.toDtos(fileTracings);
     }
 
-    //    @Override
-//    public List<FileTracingResponse> getTracingOnFileByFileId(long id){
-//        Pageable pageable = PageRequest.of(0, 10);
-//        List<FileTracing> fileTracings = fileTracingRepo.findLatest10ByFileId(id,pageable);
-//        return
-//    }
-
 }

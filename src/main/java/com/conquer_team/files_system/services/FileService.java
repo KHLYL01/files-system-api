@@ -4,6 +4,7 @@ import com.conquer_team.files_system.model.dto.requests.*;
 import com.conquer_team.files_system.model.dto.response.FileResponse;
 import com.conquer_team.files_system.model.dto.response.FileTracingResponse;
 import com.conquer_team.files_system.model.entity.File;
+import org.springframework.data.domain.Pageable;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
@@ -11,15 +12,15 @@ import java.util.List;
 
 public interface FileService {
 
-    List<FileResponse> findAll();
+    List<FileResponse> findAll(int pageNumber,int pageSize);
 
 //    List<FileResponse> findAllByUserId(Long userId);
 
-    List<FileResponse> findAllBookedFileByUserId(Long userId);
+    List<FileResponse> findAllBookedFileByUserId(Long userId ,int pageNumber,int pageSize);
 
     void compareFiles(CompareFilesRequest request);
 
-    List<FileResponse> findAllByFolderId(Long folderId);
+    List<FileResponse> findAllByFolderId(Long folderId,int pageNumber,int pageSize);
 
     FileResponse save(AddFileRequest request) throws IOException;
 
@@ -39,9 +40,9 @@ public interface FileService {
 
     void acceptOrRejectFile(AcceptOrRejectFileRequest request);
 
-    List<FileResponse> getPendingFiles(long id);
+    List<FileResponse> getPendingFiles(long id, int pageNumber,int pageSize);
 
-    List<FileTracingResponse> getTracingOnFileByFileId(long id);
+//    List<FileTracingResponse> getTracingOnFileByFileId(long id);
 
 //    byte[] viewFile(String fileName) throws IOException;
 
