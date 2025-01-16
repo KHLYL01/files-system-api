@@ -254,6 +254,7 @@ public class FileServiceImpl implements FileService {
     @Transactional
     @Override
     public FileResponse checkOut(CheckOutRequest request, long id) throws IOException {
+        System.out.println("A1");
         File file = repo.findById(id).orElseThrow(
                 () -> new IllegalArgumentException("File with id " + id + " is not found")
         );
@@ -267,20 +268,21 @@ public class FileServiceImpl implements FileService {
                 } else {
                     fileName = uploadFile(request.getFile(), file.getName());
                   Backups backups =  backupService.addBackup(BackupRequest.builder().name(fileName).file(file).user(file.getBookedUser()).build());
-                   // System.out.println(backups.getId());
+
                     CompareFilesRequest compareRequest = CompareFilesRequest.builder()
                             .oldFile(file.getName() + "/" + file.getBackups().get(file.getBackups().size() - 1).getName())
                             .newFile(file.getName() + "/" + fileName).userId(userRepo.findByEmail(jwtService.getCurrentUserName()).get().getId())
                             .fileId(file.getId()).build();
                     // create event to compareFiles
-                    //2024-12-27_00_23_38482df285-4f1f-4950-bb2a-e99f08439875_New Text Document.txt
                     outBoxService.addEvent(compareRequest, EventTypes.COMPARE_FILES);
                 }
+                System.out.println("A2");
                 NotificationRequest notificationRequest = NotificationRequest.builder().title("New Update")
                         .message("The file" + fileName + "has been modified by " + file.getBookedUser().getFullname())
                         .folderId(file.getFolder().getId()).build();
                 //create event to sent Notification
                 outBoxService.addEvent(notificationRequest, EventTypes.SENT_NOTIFICATION_TO_ALL_MEMBERS);
+                System.out.println("A3");
             }
             file.setBookedUser(null);
             return mapper.toDto(repo.save(file));
