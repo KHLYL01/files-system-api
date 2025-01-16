@@ -36,11 +36,15 @@ public class File {
     @JoinColumn(name = "folder_id")
     private Folder folder;
 
-    @OneToMany(mappedBy = "file",cascade = CascadeType.ALL,orphanRemoval = true)
+    @OneToMany(mappedBy = "file",cascade = CascadeType.REMOVE,fetch = FetchType.EAGER)
     private List<Backups> backups;
 
     @OneToMany(mappedBy = "file",cascade = CascadeType.REMOVE)
     private List<Archive> archives;
+
+    @OneToMany(mappedBy = "file",cascade = CascadeType.REMOVE)
+    private List<FileTracing> fileTracings;
+
 
     @PrePersist
     public void prePersist() {

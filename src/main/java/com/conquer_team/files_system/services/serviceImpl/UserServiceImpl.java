@@ -126,10 +126,13 @@ public class UserServiceImpl implements UserService {
     @Transactional
     @Override
     public void rejectInvitationOrJoinRequest(long id) {
+        System.out.println("1");
         UserFolder userFolder = userFolderRepo.findById(id).orElseThrow(() ->
                 new IllegalArgumentException("not found"));
-        userFolderRepo.delete(userFolder);
-        this.checkRepeat(userFolder);
+        userFolderRepo.deleteById(id);
+        userFolderRepo.flush();
+        System.out.println("2");
+      //  this.checkRepeat(userFolder);
     }
 
     @Transactional

@@ -31,9 +31,10 @@ public class OutBoxServiceBackground {
             try {
                 if (box.getType().equals(EventTypes.SENT_NOTIFICATION_TO_USER)) {
                     notificationService.sendNotificationToUser(objectMapper.readValue(box.getPayload(), NotificationRequest.class));
-                } else if (box.getType().equals(EventTypes.COMPARE_FILES)) {
+                } else
+                 if (box.getType().equals(EventTypes.COMPARE_FILES)) {
                     fileService.compareFiles(objectMapper.readValue(box.getPayload(), CompareFilesRequest.class));
-                }
+                 }
                 box.setStatus(MessageStatus.SENT);
                 outBoxRepo.save(box);
             } catch (Exception e) {
@@ -45,4 +46,3 @@ public class OutBoxServiceBackground {
         }
     }
 }
-

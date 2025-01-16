@@ -26,6 +26,7 @@ public class FileTracingMapper {
                 .id(entity.getId())
                 .fileId(entity.getFile().getId())
                 .userId(entity.getUser().getId())
+                .userName(entity.getUser().getFullname())
                 .type(entity.getType())
                 .createdAt(entity.getCreatedAt())
                 .build();

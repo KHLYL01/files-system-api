@@ -13,6 +13,7 @@ public class FileTracingResponse {
     private Long id;
     private Long fileId;
     private Long userId;
+    private String userName;
     private FileOperationType type;
     private LocalDateTime createdAt;
 

@@ -34,7 +34,7 @@ public class Folder {
     @OneToMany(mappedBy = "folder",fetch = FetchType.EAGER,cascade = {CascadeType.REMOVE})
     private List<File> listOfFiles;
 
-    @OneToMany(mappedBy = "folder",fetch = FetchType.EAGER,cascade = CascadeType.ALL)
+    @OneToMany(mappedBy = "folder",fetch = FetchType.EAGER,cascade = CascadeType.REMOVE)
     private List<UserFolder> userFolders;
 
 }

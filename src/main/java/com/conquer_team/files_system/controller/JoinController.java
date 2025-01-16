@@ -56,7 +56,7 @@ public class JoinController {
     @DeleteMapping("/reject/{id}")
     public ResponseEntity<?> rejectInvitationOrJoinRequest(@PathVariable long id) {
         userService.rejectInvitationOrJoinRequest(id);
-        return ResponseEntity.noContent().build();
+        return ResponseEntity.ok().build();
     }
 
 }

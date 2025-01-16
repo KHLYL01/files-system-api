@@ -58,7 +58,9 @@ public class BackupServiceImpl implements BackupService {
         if (Files.exists(filePath)) {
             Files.delete(filePath);
         }
-        repo.delete(backups);
+        System.out.println("over 10");
+        repo.deleteById(backups.getId());
+        System.out.println("delete backup");
     }
 
     private void checkBackup(File file) {

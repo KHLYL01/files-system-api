@@ -12,9 +12,7 @@ import org.springframework.scheduling.annotation.Scheduled;
 //@EnableAsync
 @EnableCaching
 public class FilesSystemApplication {
-
     public static void main(String[] args) {
         SpringApplication.run(FilesSystemApplication.class, args);
     }
-
 }

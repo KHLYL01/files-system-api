@@ -2,9 +2,11 @@
 //
 //import com.github.difflib.DiffUtils;
 //import com.github.difflib.patch.AbstractDelta;
+//import com.github.difflib.patch.DeltaType;
 //import com.github.difflib.patch.Patch;
 //
 //import java.nio.file.Files;
+//import java.nio.file.Path;
 //import java.nio.file.Paths;
 //import java.util.List;
 //import java.util.Set;
@@ -12,53 +14,37 @@
 //
 //public class test {
 //    public static void compareFiles() throws Exception {
-//
-//        List<String> oldFileLines = Files.readAllLines(Paths.get("src/main/resources/static/folders/2024-11-22_11_32_053d96bde1-afbc-4be6-8284-4ae4fc1df763_categories.pdf/test1.txt"));
-//        List<String> newFileLines = Files.readAllLines(Paths.get("src/main/resources/static/folders/2024-11-22_11_32_053d96bde1-afbc-4be6-8284-4ae4fc1df763_categories.pdf/test2.txt"));
-//
-//        String newFileContent = String.join("\n", newFileLines);
-//        int newFileSizeInBytes = newFileContent.getBytes("UTF-8").length;
+//        System.out.println("Ameen");
+//        List<String> oldFileLines = Files.readAllLines(Paths.get("src/main/resources/static/folders/2025-01-14_12_06_2708236a60-205c-432c-8df8-0ee6738161c8_test1.txt/2025-01-14_12_15_39f83fd649-d2a8-4159-9071-ba0f13d68462_test1.txt"));
+//        List<String> newFileLines = Files.readAllLines(Paths.get("src/main/resources/static/folders/2025-01-14_12_06_2708236a60-205c-432c-8df8-0ee6738161c8_test1.txt/2025-01-14_15_01_065e2f7a1c-c8a3-411b-9c8c-f1dfffa7dcb4_test1.txt"));
 //        Patch<String> patch = DiffUtils.diff(oldFileLines, newFileLines);
+//        Path path = Paths.get("src/main/resources/static/folders/2025-01-14_12_06_2708236a60-205c-432c-8df8-0ee6738161c8_test1.txt/2025-01-14_15_01_065e2f7a1c-c8a3-411b-9c8c-f1dfffa7dcb4_test1.txt");
+//        double size = Files.size(path) ;
+////        String newFileContent = String.join("\n", newFileLines);
+////        double newFileSizeInBytes = newFileContent.getBytes("UTF-8").length;
+//        System.out.println("size update = "+size+"bytes");
+//        int totalline = 0;
+//        for (AbstractDelta<String> delta : patch.getDeltas()) {
+//            DeltaType type = delta.getType();
+//            List<String> sourceLines = delta.getSource().getLines();
+//            List<String> targetLines = delta.getTarget().getLines();
 //
-//        Set<Integer> changedNewLines = new TreeSet<>();
-//        if (patch.getDeltas().isEmpty()) {
-//            System.out.println("No differences found between the files.");
-//        } else {
-//            String st1 = null;
-//            int size = 0;
-//            int revisedEndLine = 0;
-//            for (AbstractDelta<String> delta : patch.getDeltas()) {
-//                st1 = delta.getType().toString();
-//                size = newFileSizeInBytes;
-//                String changeType = delta.getType().toString();
-//                int revisedStartLine = delta.getTarget().getPosition() + 1;
-//                revisedEndLine = revisedStartLine + delta.getTarget().getLines().size() - 1;
-//                for (int i = revisedStartLine; i <= revisedEndLine; i++) {
-//                    changedNewLines.add(i);
-//                }
-//                if (changeType.equals("CHANGE") || changeType.equals("INSERT") || changeType.equals("DELETE")) {
-//                    for (int i = revisedStartLine; i <= revisedEndLine; i++) {
+//            int sourcePosition = delta.getSource().getPosition() + 1; // +1 to make it 1-based index
+//            int targetPosition = delta.getTarget().getPosition() + 1;
 //
-//                        System.out.println("Line: " + i + " | Change Type: " + changeType);
+//            System.out.println("Change Type: " + type);
 //
-//                        if (changeType.equals("CHANGE") || changeType.equals("INSERT")) {
-//                            System.out.println("New content: " + delta.getTarget().getLines().get(i - revisedStartLine));
-//                        }
-//
-//                        if (changeType.equals("DELETE")) {
-//                            System.out.println("Old content: " + delta.getSource().getLines().get(i - revisedStartLine));
-//                        }
-//                    }
-//                }
+//            if (type == DeltaType.DELETE) {
+//                System.out.println("Deleted Lines (starting from line " + sourcePosition + "): " + sourceLines);
+//            } else if (type == DeltaType.INSERT) {
+//                System.out.println("Added Lines (starting from line " + targetPosition + "): " + targetLines);
+//            } else if (type == DeltaType.CHANGE) {
+//                System.out.println("Original Lines (starting from line " + sourcePosition + "): " + sourceLines);
+//                System.out.println("Modified To (starting from line " + targetPosition + "): " + targetLines);
 //            }
-//            // نوع التعديل الذي حصل على الملف
-//            System.out.println(st1);
-//            // حجم الملف المعدل
-//            System.out.println(size);
-//            // عدد الاسطر التي حدث فيها التعديل
-//            System.out.println(changedNewLines.size());
-//
+//            totalline++;
 //        }
+//        System.out.println("totallineModified = "+totalline);
 //    }
 //
 //    public static void main(String[] args) {

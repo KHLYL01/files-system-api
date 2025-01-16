@@ -23,12 +23,9 @@ public class Archive {
     @Column(name = "update_size")
     private double size;
 
-    @Column(name = "update_type")
-    private String type;
 
-    @Column(name = "num_of_update_lines")
-    private int numOfUpdateLines;
-
+    @Lob
+    @Column(columnDefinition = "TEXT")
     private String details;
 
     @ManyToOne

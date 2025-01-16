@@ -78,14 +78,14 @@ public class FileController {
     }
 
     @DeleteMapping("/{id}")
-    @AdminFolder
+    //@AdminFolder
     public ResponseEntity<?> deleteById(@PathVariable Long id) {
         fileService.deleteById(id);
         return new ResponseEntity<>(HttpStatus.CREATED);
     }
 
     @PutMapping("/accept")
-    @AdminFolder
+   @AdminFolder
     public ResponseEntity<?> acceptOrRejectFile(AcceptOrRejectFileRequest request){
       fileService.acceptOrRejectFile(request);
       return  ResponseEntity.noContent().build();

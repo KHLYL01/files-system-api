@@ -77,14 +77,19 @@ public class CheckUserAuthorizationAspect {
     }
 
     // check if this user check_in this file
-    @Before("execution(* com.conquer_team.files_system.controller.FileController.checkOut(..))")
+    @Before("execution(* com.conquer_team.files_system.controller.FileController.checkOut(..)) ||"+
+            "execution(* com.conquer_team.files_system.controller.FileController.deleteById())")
     public void checkBookedUser(JoinPoint joinPoint) {
         Long fileId = (long) joinPoint.getArgs()[0];
         File file = fileRepo.findById(fileId).orElseThrow(() ->
                 new IllegalArgumentException("file not found"));
         User user = userRepo.findByEmail(jwtService.getCurrentUserName()).orElseThrow(() ->
                 new IllegalArgumentException("user not found"));
-        if (!file.getBookedUser().getId().equals(user.getId())) {
+        if(joinPoint.getSignature().getName().equals("checkout"))
+        if (joinPoint.getSignature().getName().equals("checkout") && !file.getBookedUser().getId().equals(user.getId())) {
+            throw new AccessDeniedException("You do not have the necessary permissions to access this resource.");
+        }
+        if(joinPoint.getSignature().getName().equals("deleteById") && !file.getUser().getId().equals(user.getId())){
             throw new AccessDeniedException("You do not have the necessary permissions to access this resource.");
         }
     }

@@ -60,10 +60,10 @@ public class ArchiveServiceImpl implements ArchiveService {
         String headerValue = "attachment; filename=users_" + currentDateTime + ".csv";
         response.setHeader(headerKey, headerValue);
 
-
+        System.out.println("whyyyy?");
         ICsvBeanWriter csvWriter = new CsvBeanWriter(response.getWriter(), CsvPreference.STANDARD_PREFERENCE);
-        String[] csvHeader = {"User", "File", "Update_Size", "Update_type", "Number_Of_Modified_Lines", "Details","UpdateAt"};
-        String[] nameMapping = {"user", "file", "size", "type", "numOfUpdateLines", "details","createdAt"};
+        String[] csvHeader = {"User", "File", "Update_Size", "Details","UpdateAt"};
+        String[] nameMapping = {"user", "file", "size",  "details","createdAt"};
 
         csvWriter.writeHeader(csvHeader);
 

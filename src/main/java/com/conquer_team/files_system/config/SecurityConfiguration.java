@@ -45,6 +45,7 @@ public class SecurityConfiguration {
                         request -> request
                                 .requestMatchers(
                                         "/api/v1/folders/**",
+                                        "/api/v1/reports/**",
                                         "/api/v1/auth/**",
                                         "/api/v1/downloads/**",
                                         "/v2/api-docs",

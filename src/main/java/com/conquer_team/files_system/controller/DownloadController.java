@@ -1,29 +1,25 @@
 package com.conquer_team.files_system.controller;
 
-import com.conquer_team.files_system.model.entity.Archive;
+
 import com.conquer_team.files_system.repository.ArchiveRepo;
-import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.io.ByteArrayResource;
-import org.springframework.data.domain.Sort;
+import org.springframework.core.io.InputStreamResource;
 import org.springframework.http.HttpHeaders;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
-import org.supercsv.io.CsvBeanWriter;
-import org.supercsv.io.ICsvBeanWriter;
-import org.supercsv.prefs.CsvPreference;
 
+import java.io.ByteArrayOutputStream;
 import java.io.File;
+import java.io.FileInputStream;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.text.DateFormat;
-import java.text.SimpleDateFormat;
-import java.util.Date;
-import java.util.List;
+import java.util.zip.GZIPOutputStream;
 
 @RestController
 @RequiredArgsConstructor
@@ -36,28 +32,74 @@ public class DownloadController {
 
     @GetMapping("/file")
     public ResponseEntity<?> viewFile(@RequestParam String filename) throws IOException {
-        System.out.println(filename);
+
         File file = new File(uploadImageDirectory + "/" + filename);
 
-        HttpHeaders header = new HttpHeaders();
-        header.add(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=" + filename + ".txt");
-        header.add("Cache-Control", "no-cache, no-store, must-revalidate");
-        header.add("Pragma", "no-cache");
-        header.add("Expires", "0");
+        if (!file.exists()) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body("File not found!");
+        }
 
-        System.out.println(file.getAbsolutePath());
-        Path filePath = Paths.get(file.getAbsolutePath());
-        ByteArrayResource resource = new ByteArrayResource(Files.readAllBytes(filePath));
+        long fileSize = file.length();
+        HttpHeaders headers = new HttpHeaders();
+        headers.add("Cache-Control", "no-cache, no-store, must-revalidate");
+        headers.add("Pragma", "no-cache");
+        headers.add("Expires", "0");
 
-        return ResponseEntity.ok()
-                .headers(header)
-                .contentLength(file.length())
-                .contentType(MediaType.parseMediaType("application/octet-stream"))
-                .body(resource);
+        if (fileSize >= 5120) {
+            System.out.println(">=5kb");
+            ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream();
+            try (FileInputStream fileInputStream = new FileInputStream(file);
+                 GZIPOutputStream gzipOutputStream = new GZIPOutputStream(byteArrayOutputStream)) {
+
+                byte[] buffer = new byte[1024];
+                int length;
+                while ((length = fileInputStream.read(buffer)) > 0) {
+                    gzipOutputStream.write(buffer, 0, length);
+                }
+                gzipOutputStream.finish();
+            }
+
+            System.out.println("ammm");
+            headers.add(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=" + file.getName() + ".gz");
+            return ResponseEntity.ok()
+                    .headers(headers)
+                    .contentLength(byteArrayOutputStream.size())
+                    .contentType(MediaType.parseMediaType("application/gzip"))
+                    .body(new ByteArrayResource(byteArrayOutputStream.toByteArray()));
+        } else {
+            headers.add(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=" + file.getName());
+            return ResponseEntity.ok()
+                    .headers(headers)
+                    .contentLength(fileSize)
+                    .contentType(MediaType.APPLICATION_OCTET_STREAM)
+                    .body(new InputStreamResource(new FileInputStream(file)));
+        }
+
     }
+}
 
 
-   // @GetMapping("/report")
+//        System.out.println(filename);
+//        File file = new File(uploadImageDirectory + "/" + filename);
+//
+//        HttpHeaders header = new HttpHeaders();
+//        header.add(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=" + file.getName());
+//        header.add("Cache-Control", "no-cache, no-store, must-revalidate");
+//        header.add("Pragma", "no-cache");
+//        header.add("Expires", "0");
+//
+//        System.out.println(file.getAbsolutePath());
+//        Path filePath = Paths.get(file.getAbsolutePath());
+//        ByteArrayResource resource = new ByteArrayResource(Files.readAllBytes(filePath));
+//
+//        return ResponseEntity.ok()
+//                .headers(header)
+//                .contentLength(file.length())
+//                .contentType(MediaType.parseMediaType("application/octet-stream"))
+//                .body(resource);
+
+
+// @GetMapping("/report")
 //    public void exportToCSV(HttpServletResponse response) throws IOException {
 //        response.setContentType("text/csv");
 //        DateFormat dateFormatter = new SimpleDateFormat("yyyy-MM-dd_HH-mm-ss");
@@ -82,4 +124,4 @@ public class DownloadController {
 //        csvWriter.close();
 //
 //    }
-}
+

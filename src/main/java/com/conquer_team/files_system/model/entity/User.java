@@ -45,7 +45,7 @@ public class User implements UserDetails {
     @OneToMany(mappedBy = "user",fetch = FetchType.EAGER,orphanRemoval = true)
     private List<File> listOfFiles;
 
-    @OneToMany(mappedBy = "user",fetch = FetchType.EAGER, cascade = CascadeType.ALL)
+    @OneToMany(mappedBy = "user",fetch = FetchType.EAGER, cascade = CascadeType.REMOVE)
     private List<UserFolder> userFolders;
 
     @OneToMany(mappedBy = "user", cascade = CascadeType.REMOVE)
