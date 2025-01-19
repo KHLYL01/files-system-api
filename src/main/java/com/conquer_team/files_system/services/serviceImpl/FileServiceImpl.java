@@ -26,6 +26,7 @@ import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.cache.annotation.Cacheable;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -63,7 +64,7 @@ public class FileServiceImpl implements FileService {
 
     @Override
     public List<FileResponse> findAll(int pageNumber,int pageSize) {
-        Pageable pageable = PageRequest.of(pageNumber,pageSize);
+        Pageable pageable = PageRequest.of(pageNumber,pageSize,Sort.Direction.DESC);
         return mapper.toDtos(repo.findAll(pageable).getContent());
     }
 
@@ -75,7 +76,7 @@ public class FileServiceImpl implements FileService {
     @Cacheable(value = "files", key = "#userId")
     @Override
     public List<FileResponse> findAllBookedFileByUserId(Long userId,int pageNumber,int pageSize) {
-        Pageable pageable = PageRequest.of(pageNumber,pageSize);
+        Pageable pageable = PageRequest.of(pageNumber,pageSize, Sort.Direction.DESC);
         return mapper.toDtos(repo.findAllByBookedUserId(userId,pageable));
     }
 
@@ -87,7 +88,7 @@ public class FileServiceImpl implements FileService {
     @Cacheable(value = "files", key = "#folderId")
     @Override
     public List<FileResponse> findAllByFolderId(Long folderId,int pageNumber,int pageSize) {
-        Pageable pageable = PageRequest.of(pageNumber,pageSize);
+        Pageable pageable = PageRequest.of(pageNumber,pageSize,Sort.Direction.DESC);
         return mapper.toDtos(repo.findAllByFolderIdAndStatusNot(folderId,FileStatus.PENDING,pageable));
     }
 
@@ -117,7 +118,7 @@ public class FileServiceImpl implements FileService {
 
     @Override
     public List<FileResponse> getPendingFiles(long id,int pageNumber,int pageSize) {
-        Pageable pageable = PageRequest.of(pageNumber,pageSize);
+        Pageable pageable = PageRequest.of(pageNumber,pageSize,Sort.Direction.DESC);
         List<File> files = repo.findAllByFolderIdAndStatusIs(id, FileStatus.PENDING,pageable);
         return mapper.toDtos(files);
     }
