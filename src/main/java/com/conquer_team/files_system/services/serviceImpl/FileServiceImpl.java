@@ -3,7 +3,6 @@ package com.conquer_team.files_system.services.serviceImpl;
 import com.conquer_team.files_system.config.JwtService;
 import com.conquer_team.files_system.model.dto.requests.*;
 import com.conquer_team.files_system.model.dto.response.FileResponse;
-import com.conquer_team.files_system.model.dto.response.FileTracingResponse;
 import com.conquer_team.files_system.model.entity.*;
 import com.conquer_team.files_system.model.enums.EventTypes;
 import com.conquer_team.files_system.model.enums.FileStatus;
@@ -24,6 +23,7 @@ import org.apache.pdfbox.text.PDFTextStripper;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.cache.annotation.Cacheable;
+import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
@@ -37,7 +37,9 @@ import java.nio.file.*;
 import java.nio.file.attribute.BasicFileAttributes;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
 import java.util.concurrent.ConcurrentHashMap;
 
 @Service
@@ -63,9 +65,10 @@ public class FileServiceImpl implements FileService {
     private final ConcurrentHashMap<Long, Object> fileLocks = new ConcurrentHashMap<>();
 
     @Override
-    public List<FileResponse> findAll(int pageNumber,int pageSize) {
-        Pageable pageable = PageRequest.of(pageNumber,pageSize,Sort.Direction.DESC);
-        return mapper.toDtos(repo.findAll(pageable).getContent());
+    public Page<FileResponse> findAll(int pageNumber, int pageSize) {
+        Pageable pageable = PageRequest.of(pageNumber, pageSize, Sort.Direction.DESC,"Id");
+        Page<File> page = repo.findAll(pageable);
+        return page.map(mapper::toDto);
     }
 
 //    @Override
@@ -75,9 +78,10 @@ public class FileServiceImpl implements FileService {
 
     @Cacheable(value = "files", key = "#userId")
     @Override
-    public List<FileResponse> findAllBookedFileByUserId(Long userId,int pageNumber,int pageSize) {
-        Pageable pageable = PageRequest.of(pageNumber,pageSize, Sort.Direction.DESC);
-        return mapper.toDtos(repo.findAllByBookedUserId(userId,pageable));
+    public Page findAllBookedFileByUserId(Long userId, int pageNumber, int pageSize) {
+        Pageable pageable = PageRequest.of(pageNumber, pageSize, Sort.Direction.DESC,"Id");
+        Page<File> page =repo.findAllByBookedUserId(userId, pageable);
+        return page.map(mapper::toDto);
     }
 
 //    @Override
@@ -87,9 +91,10 @@ public class FileServiceImpl implements FileService {
 
     @Cacheable(value = "files", key = "#folderId")
     @Override
-    public List<FileResponse> findAllByFolderId(Long folderId,int pageNumber,int pageSize) {
-        Pageable pageable = PageRequest.of(pageNumber,pageSize,Sort.Direction.DESC);
-        return mapper.toDtos(repo.findAllByFolderIdAndStatusNot(folderId,FileStatus.PENDING,pageable));
+    public Page<FileResponse> findAllByFolderId(Long folderId, int pageNumber, int pageSize) {
+        Pageable pageable = PageRequest.of(pageNumber, pageSize, Sort.Direction.DESC,"Id");
+        Page<File> page = repo.findAllByFolderIdAndStatusNot(folderId, FileStatus.PENDING, pageable);
+        return page.map(mapper::toDto);
     }
 
     @Cacheable(value = "files", key = "#id")
@@ -117,10 +122,10 @@ public class FileServiceImpl implements FileService {
     }
 
     @Override
-    public List<FileResponse> getPendingFiles(long id,int pageNumber,int pageSize) {
-        Pageable pageable = PageRequest.of(pageNumber,pageSize,Sort.Direction.DESC);
-        List<File> files = repo.findAllByFolderIdAndStatusIs(id, FileStatus.PENDING,pageable);
-        return mapper.toDtos(files);
+    public Page<FileResponse> getPendingFiles(long id, int pageNumber, int pageSize) {
+        Pageable pageable = PageRequest.of(pageNumber, pageSize, Sort.Direction.DESC, "Id");
+        Page<File> page = repo.findAllByFolderIdAndStatusIs(id, FileStatus.PENDING, pageable);
+        return page.map(mapper::toDto);
     }
 
 //    @Override
@@ -274,7 +279,7 @@ public class FileServiceImpl implements FileService {
                     throw new IllegalArgumentException("Please upload the same file");
                 } else {
                     fileName = uploadFile(request.getFile(), file.getName());
-                  Backups backups =  backupService.addBackup(BackupRequest.builder().name(fileName).file(file).user(file.getBookedUser()).build());
+                    Backups backups = backupService.addBackup(BackupRequest.builder().name(fileName).file(file).user(file.getBookedUser()).build());
 
                     CompareFilesRequest compareRequest = CompareFilesRequest.builder()
                             .oldFile(file.getName() + "/" + file.getBackups().get(file.getBackups().size() - 1).getName())
@@ -305,10 +310,10 @@ public class FileServiceImpl implements FileService {
         String timestamp = LocalDateTime.now().format(formatter);
         Path uploadPath = null;
         Path filePath;
-        String uniqueFileName = null ;//=timestamp + file.getOriginalFilename(); //timestamp + UUID.randomUUID() + "_" + file.getOriginalFilename();
+        String uniqueFileName = null;//=timestamp + file.getOriginalFilename(); //timestamp + UUID.randomUUID() + "_" + file.getOriginalFilename();
         if (path == null) {
             uploadPath = Path.of(uploadImageDirectory + file.getOriginalFilename());
-            uniqueFileName =  file.getOriginalFilename();
+            uniqueFileName = file.getOriginalFilename();
         } else {
             uploadPath = Path.of(uploadImageDirectory + path);
             uniqueFileName = timestamp + file.getOriginalFilename();
@@ -330,25 +335,23 @@ public class FileServiceImpl implements FileService {
         try {
             List<String> oldFileLines = null;
             List<String> newFileLines = null;
-            if(request.getOldFile().contains(".pdf")){
-                String FileText1 = convertPdfToText(uploadImageDirectory + "/" +request.getOldFile());
-                String FileText2 = convertPdfToText(uploadImageDirectory + "/" +request.getNewFile());
-                 oldFileLines = Arrays.asList(FileText1.split("\n"));
-                 newFileLines = Arrays.asList(FileText2.split("\n"));
-            }
-            else {
-               oldFileLines = Files.readAllLines(Paths.get(uploadImageDirectory + "/" + request.getOldFile()));
-               newFileLines = Files.readAllLines(Paths.get(uploadImageDirectory + "/" + request.getNewFile()));
+            if (request.getOldFile().contains(".pdf")) {
+                String FileText1 = convertPdfToText(uploadImageDirectory + "/" + request.getOldFile());
+                String FileText2 = convertPdfToText(uploadImageDirectory + "/" + request.getNewFile());
+                oldFileLines = Arrays.asList(FileText1.split("\n"));
+                newFileLines = Arrays.asList(FileText2.split("\n"));
+            } else {
+                oldFileLines = Files.readAllLines(Paths.get(uploadImageDirectory + "/" + request.getOldFile()));
+                newFileLines = Files.readAllLines(Paths.get(uploadImageDirectory + "/" + request.getNewFile()));
             }
             Patch<String> patch = DiffUtils.diff(oldFileLines, newFileLines);
             Path path = Paths.get(uploadImageDirectory + "/" + request.getNewFile());
-            double size = Files.size(path) ;
+            double size = Files.size(path);
             int revisedEndLine = 0;
             int changedLine = 0;
-            if(patch.getDeltas().isEmpty()){
+            if (patch.getDeltas().isEmpty()) {
                 details = "No differences between the files";
-            }
-            else {
+            } else {
                 for (AbstractDelta<String> delta : patch.getDeltas()) {
                     DeltaType type = delta.getType();
                     List<String> sourceLines = delta.getSource().getLines();
@@ -375,7 +378,7 @@ public class FileServiceImpl implements FileService {
                 }
             }
 
-            System.out.println("changed line = "+changedLine);
+            System.out.println("changed line = " + changedLine);
 
 
             File file = repo.findById(request.getFileId()).orElseThrow(() ->
@@ -397,7 +400,7 @@ public class FileServiceImpl implements FileService {
     }
 
 
-    private  String convertPdfToText(String pdfFilePath) throws IOException {
+    private String convertPdfToText(String pdfFilePath) throws IOException {
         java.io.File pdfFile = new java.io.File(pdfFilePath);
         try (PDDocument document = PDDocument.load(pdfFile)) {
             PDFTextStripper pdfStripper = new PDFTextStripper();

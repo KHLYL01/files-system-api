@@ -14,12 +14,12 @@ public interface FileRepo extends JpaRepository<File,Long> {
 
     List<File> findAllByUserId(Long userId);
 
-    List<File> findAllByFolderIdAndStatusNot(Long folderId,FileStatus status,Pageable pageable);
+    Page<File> findAllByFolderIdAndStatusNot(Long folderId,FileStatus status,Pageable pageable);
 
-    List<File> findAllByBookedUserId(Long userId,Pageable pageable);
+    Page<File> findAllByBookedUserId(Long userId,Pageable pageable);
 
     List<File> findAllByBookedUserIdAndFolderId(Long userId,Long folderId);
 
-    List<File> findAllByFolderIdAndStatusIs(Long id,FileStatus status,Pageable pageable);
+    Page<File> findAllByFolderIdAndStatusIs(Long id,FileStatus status,Pageable pageable);
 
 }
