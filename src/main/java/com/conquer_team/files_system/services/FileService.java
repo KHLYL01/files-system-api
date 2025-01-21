@@ -43,7 +43,7 @@ public interface FileService {
 
     Page<FileResponse> getPendingFiles(long id, int pageNumber,int pageSize);
 
-//    List<FileTracingResponse> getTracingOnFileByFileId(long id);
+
 
 //    byte[] viewFile(String fileName) throws IOException;
 

@@ -28,15 +28,20 @@ public class FileTracingController {
         return ResponseEntity.ok(fileTracingService.findAllByFilter(fileId, userId, type, start, end));
     }
 
-    @GetMapping("/{id}")
-    public ResponseEntity<?> findAllByUserId(@PathVariable Long id) {
-        return ResponseEntity.ok(fileTracingService.findById(id));
-    }
+//    @GetMapping("/{id}")
+//    public ResponseEntity<?> findAllByUserId(@PathVariable Long id) {
+//        return ResponseEntity.ok(fileTracingService.findById(id));
+//    }
 
     @DeleteMapping("/{id}")
     public ResponseEntity<?> deleteById(@PathVariable Long id) {
         fileTracingService.deleteById(id);
         return ResponseEntity.noContent().build();
+    }
+
+    @GetMapping("/{file_id}")
+    public ResponseEntity<?> getAllFileByFileId(@PathVariable Long file_id){
+        return ResponseEntity.status(200).body(fileTracingService.getTracingOnFileByFileId(file_id));
     }
 
 }

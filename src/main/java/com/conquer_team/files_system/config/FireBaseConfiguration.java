@@ -18,33 +18,7 @@ import java.io.InputStream;
 @Configuration
 public class FireBaseConfiguration {
 
-    private static final String FIREBASE_CONFIG_PATH = "filemanager-446f0-firebase-adminsdk-omy7t-3f455fc4a2.json";
-// src/main/resources/
-
-//    @Bean
-//    		try {
-////			FirebaseOptions file = FirebaseOptions.builder().setCredentials(
-////					GoogleCredentials.fromStream(this.getClass().getClassLoader().getResourceAsStream("fir-fcm-v1-firebase.json")))
-////					.build();
-////
-////			System.out.println("Check File : "+file);
-//
-//        FileInputStream serviceAccount = new FileInputStream("src/main/resources/fir-fcm-v1-firebase.json");
-//        //System.out.println("Service Acc File: "+serviceAccount);
-//
-//        FirebaseOptions options = new FirebaseOptions.Builder()
-//                .setCredentials(GoogleCredentials.fromStream(serviceAccount)).build();
-//        //System.out.println("Got IT: "+options);
-//        if(FirebaseApp.getApps().isEmpty()) {
-//            FirebaseApp.initializeApp(options);
-//            System.out.println("Firebase App initialized successfully!");
-//        }else {
-//            System.out.println("Else :Firebase App already initialized.");
-//        }
-//
-//    } catch (Exception e) {
-//        e.printStackTrace();
-//    }
+    private static final String FIREBASE_CONFIG_PATH = "filemanager-446f0-firebase-adminsdk-omy7t-8978753311.json";
 
     @Bean
     void firebaseMessaging() throws IOException {
@@ -70,17 +44,4 @@ public class FireBaseConfiguration {
     }
 
 
-//    @Bean
-//    public GoogleCredentials googleCredentials() throws IOException {
-//        try (InputStream inputStream = getClass().getClassLoader().getResourceAsStream(FIREBASE_CONFIG_PATH)) {
-//            if (inputStream == null) {
-//                throw new IllegalArgumentException("Firebase config file not found: " + FIREBASE_CONFIG_PATH);
-//            }
-//            return GoogleCredentials.fromStream(inputStream).createScoped("https://www.googleapis.com/auth/firebase.messaging");
-//        }
-//    }
-
-//    @Value("${app.firebase-configuration-file}")
-//    private String firebaseConfigPath;
-//
 }
