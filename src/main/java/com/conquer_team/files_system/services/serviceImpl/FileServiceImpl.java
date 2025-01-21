@@ -160,6 +160,7 @@ public class FileServiceImpl implements FileService {
         });
     }
 
+    @CacheEvict(value = "files", allEntries = true)
     @Transactional
     @Override
     public FileResponse save(AddFileRequest request) throws IOException {
