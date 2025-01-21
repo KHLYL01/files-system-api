@@ -76,7 +76,7 @@ public class FileServiceImpl implements FileService {
 //        return mapper.toDtos(repo.findAllByUserId(userId));
 //    }
 
-    @Cacheable(value = "files", key = "#userId")
+    @Cacheable(value = "files", key = "#userId +'_'+ #pageNumber + '_'+ #pageSize")
     @Override
     public Page findAllBookedFileByUserId(Long userId, int pageNumber, int pageSize) {
         Pageable pageable = PageRequest.of(pageNumber, pageSize, Sort.Direction.DESC,"Id");
@@ -89,7 +89,7 @@ public class FileServiceImpl implements FileService {
 //        return fileTracingService.getTracingOnFileByFileId(id);
 //    }
 
-    @Cacheable(value = "files", key = "#folderId")
+    @Cacheable(value = "files", key = "#folderId +'_'+ #pageNumber + '_'+ #pageSize")
     @Override
     public Page<FileResponse> findAllByFolderId(Long folderId, int pageNumber, int pageSize) {
         Pageable pageable = PageRequest.of(pageNumber, pageSize, Sort.Direction.DESC,"Id");
