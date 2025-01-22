@@ -45,8 +45,8 @@ public class DownloadController {
         headers.add("Pragma", "no-cache");
         headers.add("Expires", "0");
 
-        if (fileSize >= 5120) {
-            System.out.println(">=5kb");
+        if (fileSize >= 2097152) {
+            System.out.println(">=2m");
             ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream();
             try (FileInputStream fileInputStream = new FileInputStream(file);
                  GZIPOutputStream gzipOutputStream = new GZIPOutputStream(byteArrayOutputStream)) {
@@ -59,7 +59,6 @@ public class DownloadController {
                 gzipOutputStream.finish();
             }
 
-            System.out.println("ammm");
             headers.add(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=" + file.getName() + ".gz");
             return ResponseEntity.ok()
                     .headers(headers)

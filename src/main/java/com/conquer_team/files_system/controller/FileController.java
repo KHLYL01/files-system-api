@@ -15,7 +15,7 @@ import java.io.IOException;
 @RestController
 @RequiredArgsConstructor
 @RequestMapping("/api/v1/files")
-@PreAuthorize("hasAnyAuthority('USER','ADMIN')")
+//@PreAuthorize("hasAnyAuthority('USER','ADMIN')")
 public class FileController {
 
     final private FileService fileService;

@@ -10,5 +10,6 @@ import java.time.LocalDateTime;
 public class BackupResponse {
     private Long id;
     private String name;
+    private String url;
     private LocalDateTime createdAt;
 }

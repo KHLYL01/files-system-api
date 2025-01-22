@@ -29,6 +29,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Isolation;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -210,13 +211,17 @@ public class FileServiceImpl implements FileService {
     }
 
     @CacheEvict(value = "files", allEntries = true)
-    @Transactional
+    @Transactional(isolation = Isolation.SERIALIZABLE)
     @Override
     public FileResponse checkIn(CheckInFileRequest request) {
 
         Object lock = fileLocks.computeIfAbsent(request.getFileId(), key -> new Object());
+        System.out.println(jwtService.getCurrentUserName());
+        System.out.println("/////////////////////////////////////////");
 //        lock.lock();
         synchronized (lock) {
+            System.out.println(jwtService.getCurrentUserName());
+            System.out.println("whaat?");
             try {
                 File file = repo.findById(request.getFileId()).orElseThrow(
                         () -> new IllegalArgumentException("File with id " + request.getFileId() + " is not found")
@@ -332,16 +337,19 @@ public class FileServiceImpl implements FileService {
 
     @Override
     public void compareFiles(CompareFilesRequest request) {
+       // System.out.println("Ameen?");
         String details = "";
         try {
             List<String> oldFileLines = null;
             List<String> newFileLines = null;
             if (request.getOldFile().contains(".pdf")) {
+               // System.out.println("a");
                 String FileText1 = convertPdfToText(uploadImageDirectory + "/" + request.getOldFile());
                 String FileText2 = convertPdfToText(uploadImageDirectory + "/" + request.getNewFile());
                 oldFileLines = Arrays.asList(FileText1.split("\n"));
                 newFileLines = Arrays.asList(FileText2.split("\n"));
             } else {
+              //  System.out.println("b");
                 oldFileLines = Files.readAllLines(Paths.get(uploadImageDirectory + "/" + request.getOldFile()));
                 newFileLines = Files.readAllLines(Paths.get(uploadImageDirectory + "/" + request.getNewFile()));
             }
@@ -379,7 +387,7 @@ public class FileServiceImpl implements FileService {
                 }
             }
 
-            System.out.println("changed line = " + changedLine);
+          //  System.out.println("changed line = " + changedLine);
 
 
             File file = repo.findById(request.getFileId()).orElseThrow(() ->

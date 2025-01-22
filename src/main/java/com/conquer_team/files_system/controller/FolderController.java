@@ -17,7 +17,7 @@ import org.springframework.web.bind.annotation.*;
 @RestController
 @RequiredArgsConstructor
 @RequestMapping("/api/v1/folders")
-@PreAuthorize("hasAnyAuthority('USER','ADMIN')")
+//@PreAuthorize("hasAnyAuthority('USER','ADMIN')")
 public class FolderController {
 
     final private FolderService folderService;
@@ -39,13 +39,8 @@ public class FolderController {
     )
     @GetMapping
     public ResponseEntity<?> findAll() {
-        //  logger.info("Successfully fetched folders on thread: {}", Thread.currentThread().getName());
         return ResponseEntity.ok(folderService.findAll());
     }
-//    public Future<ResponseEntity<?>> findAll() {
-//        return CompletableFuture.supplyAsync(() -> ResponseEntity.ok(folderService.findAll()));
-//    }
-
 
     @GetMapping("/my-folders")
     public ResponseEntity<?> getMyFolders() {

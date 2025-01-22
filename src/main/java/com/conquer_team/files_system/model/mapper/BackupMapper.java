@@ -27,6 +27,7 @@ public class BackupMapper {
         return BackupResponse.builder()
                 .id(entity.getId())
                 .name(entity.getName())
+                .url("http://195.88.87.77:8888/api/v1/downloads/file?filename="+entity.getFile().getName()+"/"+entity.getName())
                 .createdAt(entity.getCreatedAt())
                 .build();
     }

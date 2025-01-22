@@ -39,7 +39,7 @@ public class OutBoxServiceBackground {
             } catch (Exception e) {
                 box.setStatus(MessageStatus.FAILED);
                 outBoxRepo.save(box);
-                System.out.println(e.getLocalizedMessage());
+                //System.out.println(e.getLocalizedMessage());
             }finally {
                 outBoxRepo.save(box);
             }
