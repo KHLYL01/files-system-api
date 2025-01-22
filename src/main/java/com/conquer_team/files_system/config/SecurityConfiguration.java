@@ -36,7 +36,6 @@ public class SecurityConfiguration {
     private final UserDetailService userService;
 
 
-
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         http
@@ -47,7 +46,12 @@ public class SecurityConfiguration {
                                         "/api/v1/folders/**",
                                         "/api/v1/reports/**",
                                         "/api/v1/files/**",
-                                        "/api/v1/auth/**",
+                                        "/api/v1/auth/register",
+                                        "/api/v1/auth/login",
+                                        "/api/v1/auth/refresh",
+                                        "/api/v1/auth/verification",
+                                        "/api/v1/auth/send-code",
+                                        "/api/v1/auth/change-password",
                                         "/api/v1/downloads/**",
                                         "/v2/api-docs",
                                         "/v3/api-docs",
@@ -99,8 +103,5 @@ public class SecurityConfiguration {
     public AuthenticationManager authenticationManager(AuthenticationConfiguration config) throws Exception {
         return config.getAuthenticationManager();
     }
-
-
-
 
 }

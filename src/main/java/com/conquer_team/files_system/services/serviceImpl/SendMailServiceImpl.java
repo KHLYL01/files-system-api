@@ -13,8 +13,6 @@ public class SendMailServiceImpl implements SendMailService {
 
     private final JavaMailSender javaMailSender;
 
-//    @Value("${spring.mail.username}")
-//    private String fromEmailId;
 
     @Override
     public void sendMail(String receiver, String body, String subject) {

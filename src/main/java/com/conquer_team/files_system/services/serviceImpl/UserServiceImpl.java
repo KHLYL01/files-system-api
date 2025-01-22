@@ -31,7 +31,6 @@ import java.util.Objects;
 @RequiredArgsConstructor
 public class UserServiceImpl implements UserService {
     private final UserRepo repo;
-    private final OutBoxRepo outBoxRepo;
     private final UserMapper mapper;
     private final FolderRepo folderRepo;
     private final JwtService jwtService;

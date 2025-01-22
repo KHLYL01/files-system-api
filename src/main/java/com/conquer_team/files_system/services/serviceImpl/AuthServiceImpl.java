@@ -14,6 +14,8 @@ import lombok.RequiredArgsConstructor;
 import org.apache.commons.lang3.RandomStringUtils;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -92,7 +94,6 @@ public class AuthServiceImpl implements AuthService {
         sendMailService.sendMail(dto.getEmail(), verificationCode, "confirm your account");
         User user = repo.findByEmail(dto.getEmail()).get();
         user.setVerificationCode(verificationCode);
-
         repo.save(user);
     }
 
@@ -103,5 +104,12 @@ public class AuthServiceImpl implements AuthService {
         repo.save(user);
     }
 
+    @Override
+    public void logout() {
+        User user = repo.findByEmail(jwtService.getCurrentUserName()).orElseThrow(() ->
+                new IllegalArgumentException("user not found"));
+        user.setFcmToken(null);
+        repo.save(user);
+    }
 
 }

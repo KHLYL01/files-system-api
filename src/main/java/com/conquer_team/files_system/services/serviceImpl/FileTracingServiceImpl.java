@@ -22,31 +22,6 @@ public class FileTracingServiceImpl implements FileTracingService {
     private final FileTracingMapper mapper;
     private final FileTracingRepo fileTracingRepo;
 
-//    @Override
-//    public List<FileTracingResponse> findAll() {
-//        return mapper.toDtos(repo.findAll());
-//    }
-//
-//    @Override
-//    public List<FileTracingResponse> findAllByFileId(Long fileId) {
-//        return mapper.toDtos(repo.findAllByFileId(fileId));
-//    }
-//
-//    @Override
-//    public List<FileTracingResponse> findAllByFileIdAndType(Long fileId, FileOperationType type) {
-//        return mapper.toDtos(repo.findAllByFileIdAndType(fileId,type));
-//    }
-//
-//    @Override
-//    public List<FileTracingResponse> findAllByFileIdAndCreatedAtBetween(Long fileId, LocalDateTime dateTime1, LocalDateTime dateTime2) {
-//        return mapper.toDtos(repo.findAllByFileIdAndCreatedAtBetween(fileId,dateTime1,dateTime2));
-//    }
-//
-//    @Override
-//    public List<FileTracingResponse> findAllByFileIdAndTypeAndCreatedAtBetween(Long fileId, FileOperationType type, LocalDateTime dateTime1, LocalDateTime dateTime2) {
-//        return mapper.toDtos(repo.findAllByFileIdAndTypeAndCreatedAtBetween(fileId,type,dateTime1,dateTime2));
-//    }
-
 
     @Override
     public List<FileTracingResponse> findAllByFilter(Long fileId, Long userId, FileOperationType type, LocalDateTime start, LocalDateTime end) {

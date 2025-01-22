@@ -60,7 +60,6 @@ public class FileServiceImpl implements FileService {
     @Value("${image.directory}")
     private String uploadImageDirectory;
 
-//    private final ReentrantLock lock = new ReentrantLock();
 
     // Map to manage locks for each file
     private final ConcurrentHashMap<Long, Object> fileLocks = new ConcurrentHashMap<>();
@@ -72,10 +71,7 @@ public class FileServiceImpl implements FileService {
         return page.map(mapper::toDto);
     }
 
-//    @Override
-//    public List<FileResponse> findAllByUserId(Long userId) {
-//        return mapper.toDtos(repo.findAllByUserId(userId));
-//    }
+
 
     @Cacheable(value = "files", key = "#userId +'_'+ #pageNumber + '_'+ #pageSize")
     @Override
@@ -85,10 +81,6 @@ public class FileServiceImpl implements FileService {
         return page.map(mapper::toDto);
     }
 
-//    @Override
-//    public List<FileTracingResponse> getTracingOnFileByFileId(long id) {
-//        return fileTracingService.getTracingOnFileByFileId(id);
-//    }
 
     @Cacheable(value = "files", key = "#folderId +'_'+ #pageNumber + '_'+ #pageSize")
     @Override
@@ -118,7 +110,6 @@ public class FileServiceImpl implements FileService {
             file.setStatus(FileStatus.AVAILABLE);
             repo.save(file);
         }
-        //repo.delete(file);
         else this.deleteById(request.getFileId());
     }
 
@@ -128,22 +119,6 @@ public class FileServiceImpl implements FileService {
         Page<File> page = repo.findAllByFolderIdAndStatusIs(id, FileStatus.PENDING, pageable);
         return page.map(mapper::toDto);
     }
-
-//    @Override
-//    public FileResponse acceptFile(long id) {
-//        File file = repo.findById(id).orElseThrow(()->
-//                new IllegalArgumentException("file not found"));
-//        if(!file.getStatus().equals(FileStatus.PENDING)){
-//            throw new IllegalArgumentException("the file is accepted.");
-//        }
-//        file.setStatus(FileStatus.AVAILABLE);
-//       return mapper.toDto(repo.save(file));
-//    }
-//
-//    @Override
-//    public FileResponse rejectFile(long id) {
-//        return null;
-//    }
 
     @CacheEvict(value = "files", allEntries = true)
     @Transactional
@@ -216,12 +191,9 @@ public class FileServiceImpl implements FileService {
     public FileResponse checkIn(CheckInFileRequest request) {
 
         Object lock = fileLocks.computeIfAbsent(request.getFileId(), key -> new Object());
-        System.out.println(jwtService.getCurrentUserName());
-        System.out.println("/////////////////////////////////////////");
-//        lock.lock();
+
         synchronized (lock) {
             System.out.println(jwtService.getCurrentUserName());
-            System.out.println("whaat?");
             try {
                 File file = repo.findById(request.getFileId()).orElseThrow(
                         () -> new IllegalArgumentException("File with id " + request.getFileId() + " is not found")
@@ -246,7 +218,6 @@ public class FileServiceImpl implements FileService {
                 }
             } finally {
                 fileLocks.remove(request.getFileId(), lock);
-//                lock.unlock();
             }
         }
     }
@@ -272,7 +243,6 @@ public class FileServiceImpl implements FileService {
     @Transactional
     @Override
     public FileResponse checkOut(CheckOutRequest request, long id) throws IOException {
-        System.out.println("A1");
         File file = repo.findById(id).orElseThrow(
                 () -> new IllegalArgumentException("File with id " + id + " is not found")
         );
@@ -308,7 +278,7 @@ public class FileServiceImpl implements FileService {
             throw new IllegalArgumentException("File with id " + id + " is UnAvailable");
         }
     }
-// 2024-12-26_17_24_196183fe1e-f750-4fe8-8fd2-77807a751494_New Text Document.txt
+
 
     @Override
     public String uploadFile(MultipartFile file, String path) throws IOException {
